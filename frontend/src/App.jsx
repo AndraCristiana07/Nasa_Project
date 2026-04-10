@@ -36,6 +36,7 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // autorotate moon 
   useEffect(() => {
     globeEl.current.controls().autoRotate = true;
     globeEl.current.controls().autoRotateSpeed = 0.5;
@@ -101,6 +102,7 @@ function App() {
   return (
     <>
       <Globe
+
         ref={globeEl}
         width={dimensions.width}
         height={dimensions.height}
@@ -109,8 +111,18 @@ function App() {
         showAtmosphere={true}
         bumpScale={0.5}
 
-        backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
 
+        backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
+        onPointHover={(point) => {
+          if (globeEl.current) {
+            // if hovering on point, stop rotation, else resume
+            if (point) {
+              globeEl.current.controls().autoRotate = false;
+            } else {
+              globeEl.current.controls().autoRotate = true;
+            }
+          }
+        }}
         // milestone Pins
         pointsData={missionMilestones}
         pointLabel={d => `
