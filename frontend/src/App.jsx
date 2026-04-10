@@ -18,7 +18,29 @@ function App() {
 
   const [popupPos, setPopupPos] = useState({ x: 0, y: 0 });
 
-  const [hoveredPoint, setHoveredPoint] = useState(null);
+  const [dimensions, setDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    globeEl.current.controls().autoRotate = true;
+    globeEl.current.controls().autoRotateSpeed = 0.5; 
+  }, []);
+
   // globe pins
   useEffect(() => {
     const fetchMapData = async () => {
@@ -66,10 +88,11 @@ function App() {
     <>
       <Globe
         ref={globeEl}
-
+        width={dimensions.width}
+        height={dimensions.height}
         globeImageUrl={moonColor}
         bumpImageUrl={moonHeight}
-        showAtmosphere={false}
+        showAtmosphere={true}
         bumpScale={0.5}
 
         backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
