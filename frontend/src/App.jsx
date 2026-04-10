@@ -38,7 +38,7 @@ function App() {
 
   useEffect(() => {
     globeEl.current.controls().autoRotate = true;
-    globeEl.current.controls().autoRotateSpeed = 0.5; 
+    globeEl.current.controls().autoRotateSpeed = 0.5;
   }, []);
 
   // globe pins
@@ -83,6 +83,20 @@ function App() {
     }
   };
 
+  const handleTimelineClick = (milestone) => {
+    if (!globeEl.current) return;
+    setSelectedDay(milestone.day);
+
+    // move the camera to pin
+    globeEl.current.pointOfView({
+      lat: milestone.lat,
+      lng: milestone.lng,
+      altitude: 1.5
+    }, 1000);
+
+    // fetch specific day data 
+    fetchDayData(milestone.day);
+  };
 
   return (
     <>
@@ -154,6 +168,39 @@ function App() {
           }, transitionDuration + 100);
         }}
       />
+
+      {/* Timeline */}
+      <div className="fixed right-6 top-1/2 -translate-y-1/2 w-64 max-h-[80vh] z-50 flex flex-col pointer-events-none">
+        <div className="mb-4 px-2 pointer-events-auto">
+          <h2 className="text-blue-400 font-mono text-sm font-bold tracking-[0.2em] uppercase">
+            Mission Timeline
+          </h2>
+          <div className="h-[1px] w-full bg-gradient-to-r from-blue-500/50 to-transparent mt-1" />
+        </div>
+        <div className="flex flex-col gap-3 overflow-y-auto pr-4 no-scrollbar pointer-events-auto timeline-mask-vertical">
+          {missionMilestones.map((m, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleTimelineClick(m)}
+              className="flex group relative pl-4 transition-all hover:translate-x-1"
+            >
+              <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-slate-800 group-hover:bg-blue-500" />
+
+              <div className="flex flex-col text-left py-1">
+                <span className="text-white text-[12px] font-mono text-slate-500 group-hover:text-blue-400">
+                  DAY {String(m.day).padStart(2, '0')}
+                </span>
+                <h4 className="text-white text-sm font-semibold truncate leading-tight group-hover:text-blue-100">
+                  {m.label}
+                </h4>
+                <p className="text-slate-500 text-[15px] line-clamp-1 group-hover:text-slate-400">
+                  {m.info}
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="fixed top-6 left-6 z-50 bg-slate-950/80 backdrop-blur-md border border-slate-700/50 p-5 rounded-2xl shadow-lg">
         <h1 className="text-blue-400 font-bold text-sm mb-1"> STATUS: ACTIVE</h1>
