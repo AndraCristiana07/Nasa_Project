@@ -51,8 +51,10 @@ function App() {
         const milestonesWithImages = await Promise.all(milestones.map(async (m) => {
           try {
             const dayRes = await axios.get(`http://localhost:5000/api/mission/day/${m.day}`);
+            const weather = await axios.get(`http://localhost:5000/api/space-weather/${dayRes.data.date}`);
             return {
               ...m,
+              weather: weather.data,
               previewUrl: dayRes.data.gallery[0]?.url || null // take first image
             };
           } catch {
@@ -109,6 +111,15 @@ function App() {
         globeImageUrl={moonColor}
         bumpImageUrl={moonHeight}
         showAtmosphere={true}
+        atmosphereColor={
+          selectedDay
+            ? missionMilestones[selectedDay - 1]?.weather?.risk === 'HIGH'
+              ? '#ff0000' // red glow for strong solar flares
+              : missionMilestones[selectedDay - 1]?.weather?.risk === 'MEDIUM'
+              ? '#facc15' // yellow glow for medium solar flares
+              : '#3b82f6' // default blue glow
+            : '#3b82f6'
+        }
         bumpScale={0.5}
 
 
@@ -196,12 +207,28 @@ function App() {
               onClick={() => handleTimelineClick(m)}
               className="flex group relative pl-4 transition-all hover:translate-x-1"
             >
-              <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-slate-800 group-hover:bg-blue-500" />
-
+              <div className={`absolute left-0 top-0 bottom-0 w-[2px] transition-colors duration-500 
+                ${m.weather?.risk === 'HIGH' ? 'bg-red-500 shadow-[0_0_8px_#ef4444]' :
+                  m.weather?.risk === 'MEDIUM' ? 'bg-yellow-500' : 'bg-slate-800'}`}
+              />
               <div className="flex flex-col text-left py-1">
-                <span className="text-white text-[12px] font-mono text-slate-500 group-hover:text-blue-400">
-                  DAY {String(m.day).padStart(2, '0')}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-white text-[12px] font-mono text-slate-500 group-hover:text-blue-400">
+                    DAY {String(m.day).padStart(2, '0')}
+                  </span>
+
+                  {/* Danger Badge */}
+                  {m.weather?.risk === 'HIGH' && (
+                    <span className="text-[8px] font-bold text-red-500 animate-pulse tracking-tighter">
+                      [ RADIATION ALERT ]
+                    </span>
+                  )}
+                    {m.weather?.risk === 'MEDIUM' && (
+                    <span className="text-[8px] font-bold text-yellow-500 animate-pulse tracking-tighter">
+                      [ MEDIUM RADIATION ALERT ]
+                    </span>
+                  )}
+                </div>
                 <h4 className="text-white text-sm font-semibold truncate leading-tight group-hover:text-blue-100">
                   {m.label}
                 </h4>
@@ -214,12 +241,6 @@ function App() {
         </div>
       </div>
 
-      <div className="fixed top-6 left-6 z-50 bg-slate-950/80 backdrop-blur-md border border-slate-700/50 p-5 rounded-2xl shadow-lg">
-        <h1 className="text-blue-400 font-bold text-sm mb-1"> STATUS: ACTIVE</h1>
-        <div className="font-mono text-xs text-slate-300">
-          <p>DAY: <span className="text-white">9 / 10</span></p>
-        </div>
-      </div>
       {/*image gallery modal */}
       {selectedDay && galleryData && (
         <div

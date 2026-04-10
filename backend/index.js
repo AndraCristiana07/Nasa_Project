@@ -98,7 +98,7 @@ app.get('/api/mission/trajectory', (req, res) => {
             { day: 1, lat: 28.5, lng: -80.6, label: "Liftoff", color: "#fbbf24", info: "Orion launches from Kennedy Space Center." },
             { day: 2, lat: 45.0, lng: -120.0, label: "Trans-Lunar Injection", color: "#60a5fa", info: "Testing Life Support systems 46,000 miles above Earth." },
             { day: 3, lat: 25.0, lng: -60.0, label: "Deep Space Interior", color: "#60a5fa", info: "Crew demonstrates radiation shelter construction." },
-            { day: 4, lat: 15.0, lng: -40.0, label: "Optical Comms Demo", color: "#60a5fa", info: "Orion beamed 100GB of data via laser back to Earth—a new deep-space record."},
+            { day: 4, lat: 15.0, lng: -40.0, label: "Optical Comms Demo", color: "#60a5fa", info: "Orion beamed 100GB of data via laser back to Earth—a new deep-space record." },
             { day: 5, lat: 12.0, lng: 10.0, label: "Lunar Sphere of Influence", color: "#60a5fa", info: "Orion entered the Moon's gravity. The crew performed suit leak checks for the flyby." },
             { day: 6, lat: 18.4, lng: 155.0, label: "The Big Day (Furthest Point)", color: "#f87171", info: "Flyby at 4,067 miles above Ohm Crater." },
             { day: 7, lat: 0.0, lng: 100.0, label: "Earthrise", color: "#60a5fa", info: "Crew captures the first Earthrise of the mission." },
@@ -108,5 +108,52 @@ app.get('/api/mission/trajectory', (req, res) => {
     });
 });
 
+app.get('/api/space-weather/:date', async (req, res) => {
+    const { date } = req.params;
+
+    try {
+        const flareUrl = `https://api.nasa.gov/DONKI/FLR?startDate=${date}&endDate=${date}&api_key=${NASA_KEY}`;
+
+        const response = await axios.get(flareUrl);
+        const flares = response.data;
+
+        let risk = 'LOW';
+        let details = 'No significant solar activity detected';
+        let source = 'N/A';
+        let region = 'N/A';
+
+        if (flares && flares.length > 0) {
+            // M =  Medium-sized flares that can cause brief radio blackouts at the poles and minor radiation storms, often impacting astronauts
+            // X = The most powerful, "juggernaut" flares. They can cause planet-wide radio blackouts, long-lasting radiation storms, and damage satellites
+            const hasXClass = flares.some(f => f.classType.startsWith('X'));
+            const hasMClass = flares.some(f => f.classType.startsWith('M'));
+
+            if (hasXClass) {
+                risk = 'HIGH';
+                details = 'X-CLASS SOLAR FLARE DETECTED. Radiation hazard at maximum levels, severe communication blackouts expected';
+            } else if (hasMClass) {
+                risk = 'MEDIUM';
+                details = 'M-CLASS SOLAR FLARE. Increased radiation levels, minor communication disruptions possible';
+            }
+
+            source = flares[0].sourceLocation || 'N/A';
+            region = flares[0].activeRegionNum || 'N/A';
+
+        }
+
+        res.json({
+            date,
+            risk,
+            details,
+            source,
+            region,
+            flareCount: flares.length
+        });
+
+    } catch (error) {
+        console.error("DONKI Error:", error);
+        res.status(500).json({ error: "Failed to fetch space weather" });
+    }
+});
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Running on port ${PORT}`));
