@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import './App.css'
 import Globe from 'react-globe.gl';
 import axios from 'axios';
@@ -18,15 +18,29 @@ function App() {
 
   const [popupPos, setPopupPos] = useState({ x: 0, y: 0 });
 
-
+  const [hoveredPoint, setHoveredPoint] = useState(null);
   // globe pins
   useEffect(() => {
     const fetchMapData = async () => {
       try {
         const res = await axios.get('http://localhost:5000/api/mission/trajectory');
-        setMissionMilestones(res.data.milestones);
+        const milestones = res.data.milestones;
+        const milestonesWithImages = await Promise.all(milestones.map(async (m) => {
+          try {
+            const dayRes = await axios.get(`http://localhost:5000/api/mission/day/${m.day}`);
+            return {
+              ...m,
+              previewUrl: dayRes.data.gallery[0]?.url || null // take first image
+            };
+          } catch {
+            return m; // fallback if a specific day's gallery fails
+          }
+        }));
+
+        setMissionMilestones(milestonesWithImages);
+
       } catch (err) {
-        console.error("Telemetry Link Failure:", err);
+        console.error("Fetching data failes:", err);
       }
     };
     fetchMapData();
@@ -48,10 +62,8 @@ function App() {
   };
 
 
-
   return (
     <>
-
       <Globe
         ref={globeEl}
 
@@ -62,8 +74,35 @@ function App() {
 
         backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
 
-        // Milestone Pins
+        // milestone Pins
         pointsData={missionMilestones}
+        pointLabel={d => `
+            <div style="
+              position: absolute;
+              bottom: 20px; 
+              left: 50%;
+              transform: translateX(-50%);
+              width: 250px;
+              background: #0a0f1c; 
+              border: 1px solid #3b82f6; 
+              border-radius: 10px; 
+              overflow: hidden;
+              box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+              pointer-events: none;
+            ">
+              ${d.previewUrl ? `<img src="${d.previewUrl}" style="width:100%; height:120px; object-fit:cover; display:block;">` : ''}
+              
+              <div style="padding:12px; line-height: 1.2;">
+                <div style="color:#60a5fa; font-family:monospace; font-size:9px; font-weight:bold; margin-bottom:3px;">DAY ${d.day}</div>
+                <h3 style="color:white; margin:0 0 3px 0; font-size:14px; font-family:sans-serif;">${d.label}</h3>
+                <p style="color:#94a3b8; margin:0; font-size:11px; font-family:sans-serif;">${d.info}</p>
+              </div>
+
+              <div style="background:rgba(59,130,246,0.1); padding:6px; text-align:center; border-top:1px solid rgba(255,255,255,0.05);">
+                <span style="color:#60a5fa; font-size:9px; font-weight:bold; text-transform:uppercase; font-family:sans-serif;">Click to View Full Gallery</span>
+              </div>
+            </div>
+          `}
         pointLat={d => d.lat}
         pointLng={d => d.lng}
         pointColor={d => d.color || '#ff0000'}
@@ -89,7 +128,7 @@ function App() {
             });
 
             fetchDayData(point.day);
-          }, transitionDuration + 100); 
+          }, transitionDuration + 100);
         }}
       />
 
@@ -110,7 +149,7 @@ function App() {
             <div className="p-6 border-b border-white/10 flex justify-between items-center bg-blue-500/5 rounded-t-3xl">
               <div>
                 <h2 className="text-blue-400 font-bold text-xl uppercase">{galleryData.label}</h2>
-                <p className="text-slate-500 text-xs font-mono mt-1">LUNAR COORDINATES: {missionMilestones[selectedDay-1].lat}, {missionMilestones[selectedDay-1].lng}</p>
+                <p className="text-slate-500 text-xs font-mono mt-1">LUNAR COORDINATES: {missionMilestones[selectedDay - 1].lat}, {missionMilestones[selectedDay - 1].lng}</p>
               </div>
               <button
                 onClick={() => setSelectedDay(null)}
@@ -141,6 +180,7 @@ function App() {
           </div>
         </div>
       )}
+
 
       {loading && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 bg-blue-600 px-4 py-2 rounded-full text-white text-xs font-bold animate-pulse">
