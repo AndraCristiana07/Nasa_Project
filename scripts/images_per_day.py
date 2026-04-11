@@ -56,7 +56,7 @@ def get_artemis_full_mission():
     # filter out days with no photos and save
     final_output = {k: v for k, v in organized_data.items() if v}
     
-    output_path = os.path.join("..", "backend", "artemis_gallery.json")
+    output_path = os.path.join("..", "backend", "data", "artemis_gallery.json")
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(final_output, f, indent=4)
 
