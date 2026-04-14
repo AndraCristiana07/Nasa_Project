@@ -35,7 +35,8 @@ router.get('/api/mission/day/:day', (req, res) => {
             url: item.links[0].href,
             title: item.data[0].title,
             description: item.data[0].description,
-            date: item.data[0].date_created
+            date: item.data[0].date_created,
+            type: item.data[0].media_type || 'image'
         }));
 
         res.json({

@@ -13,8 +13,12 @@ app.use(morgan('dev'));
 
 const {router: weatherRouter} = require('./routes/weather');
 const {router: missionDayRouter} = require('./routes/mission_day');
-const {data: data} = require('./routes/mission_trajectory');
+const {router: flaresRouter} = require('./routes/flares');
+const {data: data} = require('./routes/mission_data');
+const {router: trajectoryRouter} = require('./routes/trajectory');
+
 const NASA_KEY = process.env.NASA_API_KEY;
+
 
 // Artemis II images
 app.get('/api/artemis/photos', async (req, res) => {
@@ -53,9 +57,13 @@ app.get('/api/mission/trajectory', (req, res) => {
 
 app.use(weatherRouter);
 
+app.use(flaresRouter);
+
 app.get('/', async (req, res) => {
     res.status(200).json({body: 'The backend is running'});
 });
+
+app.use(trajectoryRouter);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Running on port ${PORT}`));

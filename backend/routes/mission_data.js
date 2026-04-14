@@ -12,7 +12,7 @@ const data = {
             { day: 7, lat: 0.0, lng: 100.0, label: "Earthrise", color: "#60a5fa", info: "Crew captures the first Earthrise of the mission." },
             { day: 8, lat: -15.0, lng: 20.0, label: "Media & Stowage:", color: "#60a5fa", info: "Conducted a live press conference from deep space." },
             { day: 9, lat: -25.0, lng: -115.0, label: "Return Preparation", color: "#60a5fa", info: "Orion prepares for 25,000 mph re-entry." },
-            { day: 10, lat: 18.5, lng: -50.6, label: "Splashdown", color: "#fbbf24", info: "Orion safely splashes down in the Pacific Ocean." }
+            { day: 10, lat: 31.3, lng: -119.1, label: "Splashdown", color: "#fbbf24", info: "Orion safely splashes down in the Pacific Ocean." }
         ]
 }
 
