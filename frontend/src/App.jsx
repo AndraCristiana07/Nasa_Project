@@ -159,6 +159,7 @@ const MissionControl = ({ milestones }) => {
         <div className="flex items-center gap-6">
           {/* play/pause button */}
           <button
+            aria-label={shouldRun ? "pause" : "play"}
             onClick={togglePlayback}
             className="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-all"
           >
@@ -383,7 +384,7 @@ export default function App() {
         near: 0.1,
         far: 10000000 // to see objects further away
       }}>
-        <Stars radius={10000} depth={50} count={50000} factor={4} />
+        <Stars radius={500000} depth={50} count={50000} factor={4} />
         <ambientLight intensity={0.2} />
         {isDataLoaded && (
           <ArtemisScene focusTarget={focusTarget} milestones={milestones} trajectories={trajectories} />
@@ -398,7 +399,7 @@ export default function App() {
           <div className="h-[1px] w-full bg-gradient-to-r from-blue-500/50 to-transparent mt-1" />
         </div>
         <div className="flex flex-col gap-3 overflow-y-auto pr-4 no-scrollbar pointer-events-auto">
-          {milestones.map((m, idx) => (
+          {milestones?.map((m, idx) => (
             <button key={idx} onClick={() => handleTimelineClick(m)} className="flex group relative pl-4 transition-all hover:translate-x-1">
               <div className={`absolute left-0 top-0 bottom-0 w-[2px] ${m.weather?.risk === 'HIGH' ? 'bg-red-500' : 'bg-slate-800'}`} />
               <div className="flex flex-col text-left py-1">

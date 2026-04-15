@@ -299,7 +299,7 @@ const FlareMarker = ({ flare, setSunPaused }) => {
 const Sun = forwardRef(({ curve, isPaused, setIsPaused }, ref) => {
   const [flares, setFlares] = useState(MOCK_FLARES)
   const progress = useStore((s) => s.progress);
-  
+
   useEffect(() => {
     const fetchFlares = async () => {
       try {
@@ -308,7 +308,7 @@ const Sun = forwardRef(({ curve, isPaused, setIsPaused }, ref) => {
         // set real data if it has at least one flare
         if (res.data && Array.isArray(res.data) && res.data.length > 0) {
           setFlares(res.data);
-        } 
+        }
       } catch (err) {
         console.error("Solar API unreachable. Falling back to local data.", err);
       }
@@ -326,7 +326,13 @@ const Sun = forwardRef(({ curve, isPaused, setIsPaused }, ref) => {
   const texture = useTexture(sunColor);
 
   return (
-    <mesh ref={ref} position={[0, 0, 0]}>
+    <mesh
+      ref={ref}
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
+      position={[0, 0, 0]}>
+
       <sphereGeometry args={[SUN_RADIUS, 64, 64]} />
 
       <meshStandardMaterial
