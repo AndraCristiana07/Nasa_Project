@@ -256,18 +256,9 @@ const FlareMarker = ({ flare, sunRef }) => {
           />
         </mesh>
 
-        {/* hitbox for hovering */}
-        <mesh
-          position={startPoint}
-          onUpdate={(self) => {
-            if (sunRef.current) {
-              // point at the sun
-              self.lookAt(sunRef.current.position);
-              // rotate 180 degrees to face the camera
-              self.rotateY(Math.PI);
-            }
-          }}
-          onPointerOver={handlePointerOver}
+        {/* flare halo */}
+        <mesh position={startPoint}
+        onPointerOver={handlePointerOver}
           onPointerOut={() => {
             setHover(false);
             if (flarePaused.current) {
@@ -277,18 +268,7 @@ const FlareMarker = ({ flare, sunRef }) => {
             document.body.style.cursor = 'auto';
           }}
 
-          onPointerMove={(e) => e.stopPropagation()}
-        >
-          <circleGeometry args={[flare.size * 60, 60]} />
-          <meshBasicMaterial
-            visible={false}
-            depthWrite={true}
-            depthTest={true}
-          />
-        </mesh>
-
-        {/* flare halo */}
-        <mesh position={startPoint}>
+          onPointerMove={(e) => e.stopPropagation()}>
           <sphereGeometry args={[flare.size * 50, 32, 32]} />
           <meshBasicMaterial
             color={flare.color}
