@@ -9,7 +9,6 @@ import { useGLTF } from '@react-three/drei';
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 
-const SPEED = 0.1
 const SUN_RADIUS = 2400;
 const MOON_RADIUS = 0.10;
 const ORION_RADIUS = 0.015;
@@ -110,13 +109,14 @@ const Earth = forwardRef(({ curve }, ref) => {
   const texture = useTexture('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg');
 
   useFrame(() => {
-    const { progress, shouldRun } = useStore.getState();
+    const { progress } = useStore.getState();
     if (ref.current && curve) {
       ref.current.position.copy(curve.getPoint(progress));
 
-      if (shouldRun) {
-        ref.current.rotation.y += 0.002;
-      }
+      const totalSpins = 20;
+      const currentRotation = progress * Math.PI * 2 * totalSpins;
+
+      ref.current.rotation.y = currentRotation;
     }
   });
 
@@ -139,14 +139,15 @@ const Moon = forwardRef(({ curve }, ref) => {
   const texture = useTexture('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg');
 
   useFrame(() => {
-    const { progress, shouldRun } = useStore.getState();
+    const { progress } = useStore.getState();
 
     if (ref.current && curve) {
       ref.current.position.copy(curve.getPoint(progress));
 
-      if (shouldRun) {
-        ref.current.rotation.y += 0.002;
-      }
+      const totalSpins = 20;
+      const currentRotation = progress * Math.PI * 2 * totalSpins;
+
+      ref.current.rotation.y = currentRotation;
     }
   });
 
@@ -258,7 +259,7 @@ const FlareMarker = ({ flare, sunRef }) => {
 
         {/* flare halo */}
         <mesh position={startPoint}
-        onPointerOver={handlePointerOver}
+          onPointerOver={handlePointerOver}
           onPointerOut={() => {
             setHover(false);
             if (flarePaused.current) {
@@ -337,7 +338,7 @@ const Sun = forwardRef(({ curve }, ref) => {
   }, [])
 
   useFrame(() => {
-    const { progress, shouldRun } = useStore.getState();
+    const { progress } = useStore.getState();
 
     if (ref.current && curve) {
       const newPos = curve.getPoint(progress);
@@ -348,11 +349,12 @@ const Sun = forwardRef(({ curve }, ref) => {
         flareGroupRef.current.position.copy(newPos);
       }
 
-      if (shouldRun) {
-        ref.current.rotation.y += 0.002;
-        if (flareGroupRef.current) {
-          flareGroupRef.current.rotation.y += 0.002;
-        }
+      const totalSpins = 10;
+      const currentRotation = progress * Math.PI * 2 * totalSpins;
+
+      ref.current.rotation.y = currentRotation;
+      if (flareGroupRef.current) {
+        flareGroupRef.current.rotation.y = currentRotation;;
       }
     }
   });
