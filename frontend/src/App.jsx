@@ -140,8 +140,8 @@ const MissionControl = ({ milestones }) => {
   const togglePlayback = () => setShouldRun(!shouldRun);
 
   return (
-    <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-[600px] max-w-[90vw]">
-      <div className="bg-slate-900/95 backdrop-blur-xl border border-blue-500/30 p-5 rounded-2xl shadow-2xl flex flex-col gap-6"> {/* Increased gap here */}
+    <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[100] w-[600px] max-w-[90vw] ">
+      <div className="bg-slate-900/95 backdrop-blur-xl border border-blue-500/30 p-5 rounded-2xl shadow-2xl flex flex-col gap-4"> 
 
         {/* progress */}
         <div className="flex justify-between items-end font-mono text-[10px] tracking-widest px-1">
@@ -445,7 +445,7 @@ export default function App() {
                   </p>
                 </div>
 
-              ) : galleryData?.gallery?.length > 0 ? (
+              ) : galleryData && Array.isArray(galleryData.gallery) && galleryData.gallery.length > 0 ? (
                 /* loaded data */
                 galleryData.gallery.map((img, i) => (
                   <div key={i} className="mb-10 last:mb-0 group">
