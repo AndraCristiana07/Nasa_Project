@@ -61,8 +61,8 @@ def get_artemis_full_mission():
         json.dump(final_output, f, indent=4)
 
     print(f"\nFound {total_found} images across the mission.")
-    for day, photos in final_output.items():
-        print(f" {day}: {len(photos)} photos")
+    for day, media in final_output.items():
+        print(f" {day}: {len(media)} items")
 
 if __name__ == "__main__":
     get_artemis_full_mission()

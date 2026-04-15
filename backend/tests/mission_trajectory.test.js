@@ -1,4 +1,4 @@
-const {data} = require('../routes/mission_trajectory');
+const {data} = require('../routes/mission_data');
 
 describe('Mission Trajectory Data', () => {
 
