@@ -108,12 +108,15 @@ const convertCoords = (lat, lng, radius) => {
 // --- EARTH ---
 const Earth = forwardRef(({ curve }, ref) => {
   const texture = useTexture('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg');
-  const progress = useStore((s) => s.progress);
 
   useFrame(() => {
-    if (ref.current && curve) {
+    const { progress, shouldRun } = useStore.getState();
+     if (ref.current && curve) {
       ref.current.position.copy(curve.getPoint(progress));
-      ref.current.rotation.y += 0.002;
+
+      if (shouldRun) {
+        ref.current.rotation.y += 0.002;
+      }
     }
   });
 
@@ -132,15 +135,18 @@ const Earth = forwardRef(({ curve }, ref) => {
 
 // --- MOON ---
 
-const Moon = forwardRef(({ curve, isPaused, setIsPaused }, ref) => {
+const Moon = forwardRef(({ curve }, ref) => {
   const texture = useTexture('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg');
 
-  const progress = useStore((s) => s.progress);
-
   useFrame(() => {
-    if (ref.current && curve && !isPaused) {
+    const { progress, shouldRun } = useStore.getState();
+   
+    if (ref.current && curve) {
       ref.current.position.copy(curve.getPoint(progress));
-      ref.current.rotation.y += 0.002;
+
+      if (shouldRun) {
+        ref.current.rotation.y += 0.002;
+      }
     }
   });
 
@@ -157,9 +163,9 @@ const Moon = forwardRef(({ curve, isPaused, setIsPaused }, ref) => {
 const Orion = forwardRef(({ curve }, ref) => {
 
   const { scene } = useGLTF('/orionspacecraft.glb');
-  const progress = useStore((s) => s.progress);
 
   useFrame(() => {
+    const { progress } = useStore.getState();
     if (!curve || !ref.current) return;
 
     const point = curve.getPoint(progress);
@@ -183,11 +189,11 @@ const Orion = forwardRef(({ curve }, ref) => {
 useGLTF.preload('/models/your-model.glb');
 // --- SUN ---
 
-const FlareMarker = ({ flare, setSunPaused }) => {
+const FlareMarker = ({ flare }) => {
   const [hovered, setHover] = useState(false)
-
+  const setShouldRun = useStore((s) => s.setShouldRun);
+  const flarePaused = useRef(false);
   const meshRef = useRef()
-  const lightRef = useRef()
 
   const { curve, startPoint, thickness, baseSize, lightPower, emissivePow } = useMemo(() => {
     const start = convertCoords(flare.lat, flare.lng, SUN_RADIUS + 20)
@@ -201,7 +207,7 @@ const FlareMarker = ({ flare, setSunPaused }) => {
       startPoint: start,
       baseSize: flare.size * 15,
       thickness: flare.size * 8,
-      lightPower: Math.pow(flare.size, 2) * 50,
+      lightPower: Math.pow(flare.size, 2),
       emissivePow: 4 + flare.size * 2
     }
   }, [flare])
@@ -235,14 +241,27 @@ const FlareMarker = ({ flare, setSunPaused }) => {
         <mesh
           position={startPoint}
           onPointerOver={(e) => {
-            e.stopPropagation()
-            setHover(true)
-            setSunPaused(true)
+            const isCurrentlyRunning = useStore.getState().shouldRun;
+            e.stopPropagation();
+            setHover(true);
+
+            if (isCurrentlyRunning) {
+              setShouldRun(false);
+              flarePaused.current = true;
+            }
+            document.body.style.cursor = 'pointer';
           }}
           onPointerOut={() => {
-            setHover(false)
-            setSunPaused(false)
+            setHover(false);
+
+            // restart if curr flare was the reason it stopped
+            if (flarePaused.current) {
+              setShouldRun(true);
+              flarePaused.current = false; // reset the flag
+            }
+            document.body.style.cursor = 'auto';
           }}
+          onPointerMove={(e) => e.stopPropagation()}
         >
           <boxGeometry args={[flare.size * 60, flare.size * 60, flare.size * 60]} />
           <meshBasicMaterial visible={false} />
@@ -271,7 +290,7 @@ const FlareMarker = ({ flare, setSunPaused }) => {
           color="#f98029"
           distance={flare.size * 2000}
 
-          intensity={Math.pow(flare.size, 2) * 5000000}
+          intensity={lightPower * 5000000}
           decay={2}
         />
       </group>
@@ -296,9 +315,8 @@ const FlareMarker = ({ flare, setSunPaused }) => {
   )
 }
 
-const Sun = forwardRef(({ curve, isPaused, setIsPaused }, ref) => {
+const Sun = forwardRef(({ curve }, ref) => {
   const [flares, setFlares] = useState(MOCK_FLARES)
-  const progress = useStore((s) => s.progress);
 
   useEffect(() => {
     const fetchFlares = async () => {
@@ -317,9 +335,14 @@ const Sun = forwardRef(({ curve, isPaused, setIsPaused }, ref) => {
   }, [])
 
   useFrame(() => {
-    if (curve && ref.current && !isPaused) {
+    const { progress, shouldRun } = useStore.getState();
+    
+     if (ref.current && curve) {
       ref.current.position.copy(curve.getPoint(progress));
-      ref.current.rotation.y += 0.002;
+
+      if (shouldRun) {
+        ref.current.rotation.y += 0.002;
+      }
     }
   });
 
@@ -351,7 +374,7 @@ const Sun = forwardRef(({ curve, isPaused, setIsPaused }, ref) => {
       />
 
       {flares.map(flare => (
-        <FlareMarker key={flare.id} flare={flare} setSunPaused={setIsPaused} />
+        <FlareMarker key={flare.id} flare={flare} />
       ))}
     </mesh>
   );

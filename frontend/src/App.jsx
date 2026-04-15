@@ -6,7 +6,7 @@ import axios from 'axios';
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import { useThree } from '@react-three/fiber';
 import { useStore } from './store';
-
+import './App.css';
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 import { Moon, Orion, Earth, Sun } from './planets'
@@ -99,49 +99,18 @@ function CameraTracker({ targetRef }) {
   );
 }
 
-const TrajectoryDays = ({ rawData, milestones }) => {
-  if (!rawData || rawData.length === 0) return null;
-
-  // convert raw NASA km string to scaled 3D units
-  const getScaledPos = (point) => {
-    return new THREE.Vector3(
-      parseFloat(point.x) / 10000,
-      parseFloat(point.z) / 10000,
-      -parseFloat(point.y) / 10000
-    );
-  };
-
-  return (
-    <group>
-      {milestones.map((m) => {
-        // data is hourly => day1 is index 0, day2 is index 24, ... dayN is (N-1)*24 
-        const hourIndex = (m.day - 1) * 24;
-
-        // safety check in case the trajectory is shorter than the milestone day
-        const point = rawData[hourIndex] || rawData[rawData.length - 1];
-        const position = getScaledPos(point);
-
-        return (
-          <group key={m.day} position={position}>
-            <mesh>
-              <sphereGeometry args={[0.08, 16, 16]} />
-              <meshBasicMaterial color="white" />
-            </mesh>
-          </group>
-        );
-      })}
-    </group>
-  );
-};
-
 const MissionControl = ({ milestones }) => {
   const { progress, setProgress, shouldRun, setShouldRun } = useStore();
+
+  const [wasPlaying, setWasPlaying] = useState(false);
+
   const totalDays = 10;
+
   const togglePlayback = () => setShouldRun(!shouldRun);
 
   return (
     <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[100] w-[600px] max-w-[90vw] ">
-      <div className="bg-slate-900/95 backdrop-blur-xl border border-blue-500/30 p-5 rounded-2xl shadow-2xl flex flex-col gap-4"> 
+      <div className="bg-slate-900/95 backdrop-blur-xl border border-blue-500/30 p-5 rounded-2xl shadow-2xl flex flex-col gap-4">
 
         {/* progress */}
         <div className="flex justify-between items-end font-mono text-[10px] tracking-widest px-1">
@@ -205,9 +174,18 @@ const MissionControl = ({ milestones }) => {
               max="1"
               step="0.0001"
               value={progress}
+              onTouchStart={() => setShouldRun(false)}
+              onTouchEnd={() => setShouldRun(true)}
               onChange={(e) => {
                 setShouldRun(false);
                 setProgress(parseFloat(e.target.value));
+              }}
+              onMouseDown={() => {
+                setWasPlaying(shouldRun);
+                setShouldRun(false);
+              }}
+              onMouseUp={() => {
+                if (wasPlaying) setShouldRun(true);
               }}
               className="relative w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500 z-10 hover:bg-slate-700 transition-colors"
             />
@@ -258,10 +236,6 @@ const ArtemisScene = ({ focusTarget, milestones, trajectories }) => {
         <Trajectory curve={curves.earth} color='blue' />
         <Trajectory curve={curves.moon} color='yellow' />
         <Trajectory curve={curves.orion} color='red' />
-        <TrajectoryDays
-          rawData={trajectories.orion}
-          milestones={milestones}
-        />
         <Sun ref={sunRef} curve={curves.sun} isPaused={isPaused} setIsPaused={setIsPaused} />
         <Earth ref={earthRef} curve={curves.earth} isPaused={isPaused} />
         <Moon ref={moonRef} curve={curves.moon} isPaused={isPaused} setIsPaused={setIsPaused} />
@@ -278,6 +252,7 @@ export default function App() {
 
   const [trajectories, setTrajectories] = useState({ orion: [], moon: [], earth: [] });
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [hasLoadingTimeout, setHasLoadingTimeout] = useState(false);
 
   const [milestones, setMilestones] = useState([]);
   const [selectedDay, setSelectedDay] = useState(null);
@@ -289,36 +264,48 @@ export default function App() {
   const [isLoadingGallery, setIsLoadingGallery] = useState(false);
 
   useEffect(() => {
-  const fetchMissionData = async () => {
-    try {
-      const trajectoryKeys = ['artemis', 'moon', 'earth', 'sun'];
-      
-      const requests = [
-        axios.get(`${BACKEND_URL}/api/mission/trajectory`),
-        ...trajectoryKeys.map(key => axios.get(`${BACKEND_URL}/api/trajectory/${key}`))
-      ];
+    const fetchMissionData = async () => {
+      try {
+        const trajectoryKeys = ['artemis', 'moon', 'earth', 'sun'];
 
-      const responses = await Promise.all(requests);
+        const requests = [
+          axios.get(`${BACKEND_URL}/api/mission/trajectory`),
+          ...trajectoryKeys.map(key => axios.get(`${BACKEND_URL}/api/trajectory/${key}`))
+        ];
 
-      const [missionRes, orionRes, moonRes, earthRes, sunRes] = responses;
+        const responses = await Promise.all(requests);
 
-      setMilestones(missionRes.data.milestones);
-      setTrajectories({
-        orion: orionRes.data,
-        moon: moonRes.data,
-        earth: earthRes.data,
-        sun: sunRes.data
-      });
+        const [missionRes, orionRes, moonRes, earthRes, sunRes] = responses;
 
-      setIsDataLoaded(true);
-      
-    } catch (err) {
-      console.error("Data Load Fail:", err);
-    }
-  };
+        setMilestones(missionRes.data.milestones);
+        setTrajectories({
+          orion: orionRes.data,
+          moon: moonRes.data,
+          earth: earthRes.data,
+          sun: sunRes.data
+        });
 
-  fetchMissionData();
-}, []);
+        setIsDataLoaded(true);
+
+      } catch (err) {
+        console.error("Data Load Fail:", err);
+      }
+    };
+
+    fetchMissionData();
+  }, []);
+
+  useEffect(() => {
+    // if data isn't loaded after 10 seconds=> timeout state
+    const timer = setTimeout(() => {
+      if (!isDataLoaded) {
+        setHasLoadingTimeout(true);
+      }
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, [isDataLoaded]);
+
   const handleTimelineClick = async (m) => {
     setShouldRun(false);
     setSelectedDay(m.day);
@@ -339,13 +326,38 @@ export default function App() {
   return (
     <div style={{ width: '100vw', height: '100vh', background: '#000', position: 'relative' }}>
       {!isDataLoaded && (
-        <div className="fixed inset-0 z-[500] bg-black flex flex-col items-center justify-center">
-          <div className="w-64 h-[2px] bg-blue-900/30 overflow-hidden relative">
-            <div className="absolute inset-0 bg-blue-500 animate-loading-bar" />
-          </div>
-          <p className="mt-4 text-blue-400 font-mono text-[10px] tracking-[0.4em] animate-pulse">
-            ESTABLISHING SATELLITE DATA...
-          </p>
+        <div className="fixed inset-0 z-[500] bg-black flex flex-col items-center justify-center p-6 text-center">
+          {!hasLoadingTimeout ? (
+            /* loading state */
+            <>
+              <div className="w-64 h-[2px] bg-blue-900/30 overflow-hidden relative">
+                <div className="absolute inset-0 bg-blue-500 animate-loading-bar" />
+              </div>
+              <p className="mt-4 text-blue-400 font-mono text-[10px] tracking-[0.4em] animate-pulse">
+                ESTABLISHING SATELLITE DATA...
+              </p>
+            </>
+          ) : (
+            /* timeout state */
+            <div className="flex flex-col items-center animate-in fade-in duration-700">
+              <div className="text-red-500 text-4xl mb-4">🛰️</div>
+              <h2 className="text-white font-mono text-sm font-bold tracking-widest uppercase mb-2">
+                Signal Lost
+              </h2>
+              <p className="text-slate-400 font-mono text-[10px] max-w-[280px] leading-relaxed">
+                The mission backend is taking longer than expected to respond.
+                <br /><br />
+                <span className="text-blue-400">Render's free tier is likely waking up. </span>
+                Please wait a few moments and refresh the page.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-6 px-6 py-2 border border-blue-500/50 text-blue-400 font-mono text-[10px] hover:bg-blue-500/10 transition-colors uppercase tracking-widest"
+              >
+                Retry Connection
+              </button>
+            </div>
+          )}
         </div>
       )}
       {/* UI to change focus */}
@@ -413,7 +425,7 @@ export default function App() {
 
       {/* gallery*/}
       {selectedDay && (
-        <div className="fixed inset-0 flex items-center justify-center z-[100] bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 flex items-center justify-center z-[100] ">
           <div className="bg-slate-900 border border-blue-500/40 rounded-3xl w-[90%] max-w-[600px] max-h-[80vh] flex flex-col overflow-hidden shadow-2xl">
 
             {/* header with button to close modal */}
@@ -431,7 +443,7 @@ export default function App() {
               >✕</button>
             </div>
 
-            <div className="overflow-y-auto p-6 min-h-[400px]">
+            <div className="overflow-y-auto snap-y snap-mandatory p-6 min-h-[400px] gallery-scrollbar">
               {isLoadingGallery ? (
                 /* loading state */
                 <div className="flex flex-col items-center justify-center h-full py-20">
@@ -467,7 +479,7 @@ export default function App() {
                   <span className="text-4xl mb-4">📡</span>
                   <h3 className="text-white font-bold mb-2 uppercase tracking-widest">No Visual Data</h3>
                   <p className="text-slate-500 text-sm max-w-[280px]">
-                    Day {selectedDay} telemetry contains no image packets.
+                    Day {selectedDay} contains no images.
                   </p>
                 </div>
               )}
