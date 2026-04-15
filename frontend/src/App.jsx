@@ -263,6 +263,8 @@ export default function App() {
   const [galleryData, setGalleryData] = useState(null);
   const [isLoadingGallery, setIsLoadingGallery] = useState(false);
 
+  const isGalleryOpen = useStore((s) => s.isGalleryOpen);
+
   useEffect(() => {
     const fetchMissionData = async () => {
       try {
@@ -360,9 +362,23 @@ export default function App() {
           )}
         </div>
       )}
+
+      <Canvas camera={{
+        fov: 75,
+        near: 0.1,
+        far: 10000000 // to see objects further away
+      }}>
+        <Stars radius={500000} depth={50} count={50000} factor={4} />
+        <ambientLight intensity={0.2} />
+        {isDataLoaded && (
+          <ArtemisScene focusTarget={focusTarget} milestones={milestones} trajectories={trajectories} />
+        )}
+      </Canvas>
+
       {/* UI to change focus */}
-      {isDataLoaded && (
-        <div style={{
+
+      {isDataLoaded && !isGalleryOpen && (
+        <><div style={{
           position: 'absolute',
           top: 20,
           left: 20,
@@ -388,65 +404,69 @@ export default function App() {
               Focus {name}
             </button>
           ))}
-        </div>
+        </div><MissionControl milestones={milestones} />
+          {/* timeline */}
+          <div className="fixed right-6 top-1/2 -translate-y-1/2 w-64 max-h-[80vh] z-50 flex flex-col pointer-events-none">
+            <div className="mb-4 px-2 pointer-events-auto">
+              <h2 className="text-blue-400 font-mono text-sm font-bold tracking-[0.2em] uppercase">Mission Timeline</h2>
+              <div className="h-[1px] w-full bg-gradient-to-r from-blue-500/50 to-transparent mt-1" />
+            </div>
+            <div className="flex flex-col gap-3 overflow-y-auto pr-4 no-scrollbar pointer-events-auto">
+              {milestones?.map((m, idx) => (
+                <button key={idx}
+                  onClick={() => {
+                    handleTimelineClick(m);
+                    useStore.getState().setIsGalleryOpen(true);
+                  }}
+                  className="flex group relative pl-4 transition-all hover:translate-x-1"
+                >
+                  <div className={`absolute left-0 top-0 bottom-0 w-[2px] ${m.weather?.risk === 'HIGH' ? 'bg-red-500' : 'bg-slate-800'}`} />
+                  <div className="flex flex-col text-left py-1">
+                    <span className="text-white text-[12px] font-mono opacity-50">DAY {String(m.day).padStart(2, '0')}</span>
+                    <h4 className="text-white text-sm font-semibold">{m.label}</h4>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
       )}
-
-      <Canvas camera={{
-        fov: 75,
-        near: 0.1,
-        far: 10000000 // to see objects further away
-      }}>
-        <Stars radius={500000} depth={50} count={50000} factor={4} />
-        <ambientLight intensity={0.2} />
-        {isDataLoaded && (
-          <ArtemisScene focusTarget={focusTarget} milestones={milestones} trajectories={trajectories} />
-        )}
-      </Canvas>
-
-      <MissionControl milestones={milestones} />
-      {/* timeline */}
-      <div className="fixed right-6 top-1/2 -translate-y-1/2 w-64 max-h-[80vh] z-50 flex flex-col pointer-events-none">
-        <div className="mb-4 px-2 pointer-events-auto">
-          <h2 className="text-blue-400 font-mono text-sm font-bold tracking-[0.2em] uppercase">Mission Timeline</h2>
-          <div className="h-[1px] w-full bg-gradient-to-r from-blue-500/50 to-transparent mt-1" />
-        </div>
-        <div className="flex flex-col gap-3 overflow-y-auto pr-4 no-scrollbar pointer-events-auto">
-          {milestones?.map((m, idx) => (
-            <button key={idx} onClick={() => handleTimelineClick(m)} className="flex group relative pl-4 transition-all hover:translate-x-1">
-              <div className={`absolute left-0 top-0 bottom-0 w-[2px] ${m.weather?.risk === 'HIGH' ? 'bg-red-500' : 'bg-slate-800'}`} />
-              <div className="flex flex-col text-left py-1">
-                <span className="text-white text-[12px] font-mono opacity-50">DAY {String(m.day).padStart(2, '0')}</span>
-                <h4 className="text-white text-sm font-semibold">{m.label}</h4>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* gallery*/}
-      {selectedDay && (
-        <div className="fixed inset-0 flex items-center justify-center z-[100] ">
-          <div className="bg-slate-900 border border-blue-500/40 rounded-3xl w-[90%] max-w-[600px] max-h-[80vh] flex flex-col overflow-hidden shadow-2xl">
+      {isGalleryOpen && selectedDay && (
+        <div className="fixed inset-0 z-[100] flex justify-end pointer-events-none">
+          <div className="absolute border border-blue-500/40 inset-0 pointer-events-auto" onClick={() => useStore.getState().setIsGalleryOpen(false)} />
 
-            {/* header with button to close modal */}
+          <div className="
+            w-full max-w-[450px] 
+            h-full 
+            bg-slate-950/95 
+            backdrop-blur-2xl 
+            border-l border-blue-500/30 
+            shadow-[-20px_0_60px_rgba(0,0,0,0.8)]
+            pointer-events-auto 
+            flex flex-col 
+            animate-in slide-in-from-right duration-500
+          ">
+            {/* header */}
             <div className="p-6 border-b border-white/10 flex justify-between items-center">
               <h2 className="text-blue-400 font-bold text-xl uppercase">
-                {galleryData?.label || `Day ${selectedDay} Status`}
+                {galleryData?.label || `Mission Day ${selectedDay} Status`}
               </h2>
               <button
                 onClick={() => {
                   setSelectedDay(null);
                   setGalleryData(null);
-                  setShouldRun(true);
+                  useStore.getState().setIsGalleryOpen(false);
                 }}
                 className="text-white hover:text-red-500 text-2xl transition-colors"
               >✕</button>
             </div>
 
-            <div className="overflow-y-auto snap-y snap-mandatory p-6 min-h-[400px] gallery-scrollbar">
+            {/* content */}
+            <div className="overflow-y-auto snap-y snap-mandatory p-6 min-h-[400px] gallery-scrollbar flex-1 p-8 flex flex-col">
               {isLoadingGallery ? (
                 /* loading state */
-                <div className="flex flex-col items-center justify-center h-full py-20">
+                <div className="flex-1 flex flex-col items-center justify-center text-center "> 
                   <div className="relative w-20 h-20 mb-8">
                     {/* spinning outer ring */}
                     <div className="absolute inset-0 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
