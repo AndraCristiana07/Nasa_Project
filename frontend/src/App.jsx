@@ -127,83 +127,12 @@ const TrajectoryDays = ({ rawData, milestones }) => {
               <sphereGeometry args={[0.08, 16, 16]} />
               <meshBasicMaterial color="white" />
             </mesh>
-
-            {/* day label */}
-            {/* <Html distanceFactor={15} center>
-              <div style={{
-                color: 'white',
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(4px)',
-                padding: '4px 8px',
-                borderRadius: '2px',
-                fontSize: '12px',
-                fontWeight: 'bold',
-                fontFamily: 'monospace',
-                borderLeft: '2px solid red',
-                whiteSpace: 'nowrap',
-                pointerEvents: 'none',
-                transform: 'translateY(-20px)'
-              }}>
-                DAY {m.day}
-              </div>
-            </Html> */}
           </group>
         );
       })}
     </group>
   );
 };
-
-// const MissionControl = () => {
-//   const { progress, setProgress, shouldRun, setShouldRun } = useStore();
-
-//   const togglePlayback = () => setShouldRun(!shouldRun);
-
-//   return (
-//     <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-[500px] max-w-[90vw]">
-//       <div className="bg-slate-900/90 backdrop-blur-md border border-blue-500/30 p-4 rounded-2xl flex items-center gap-4">
-
-//         {/* play/pause button */}
-//         <button 
-//           onClick={togglePlayback}
-//           className="w-10 h-10 flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-colors"
-//         >
-//           {shouldRun ? (
-//             <div className="flex gap-1">
-//               <div className="w-1 h-3.5 bg-white" />
-//               <div className="w-1 h-3.5 bg-white" />
-//             </div>
-//           ) : (
-//             <div className="ml-1 w-0 h-0 border-t-[7px] border-t-transparent border-l-[12px] border-l-white border-b-[7px] border-b-transparent" />
-//           )}
-//         </button>
-
-//         {/* seek Bar */}
-//         <div className="flex-1 flex flex-col gap-1">
-//           <div className="flex justify-between font-mono text-[9px] text-blue-400 tracking-tighter uppercase">
-//             <span>T+ 00:00</span>
-//             <span className="text-white">{(progress * 100).toFixed(1)}% PATH COMPLETION</span>
-//             <span>Mission End</span>
-//           </div>
-
-//           <input
-//             type="range"
-//             min="0"
-//             max="1"
-//             step="0.0001"
-//             value={progress}
-//             onChange={(e) => {
-//               // pause when seeking
-//               setShouldRun(false); 
-//               setProgress(parseFloat(e.target.value));
-//             }}
-//             className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400"
-//           />
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
 
 const MissionControl = ({ milestones }) => {
   const { progress, setProgress, shouldRun, setShouldRun } = useStore();
@@ -244,7 +173,7 @@ const MissionControl = ({ milestones }) => {
           </button>
 
           {/* seek container */}
-          <div className="relative flex-1 group py-4"> 
+          <div className="relative flex-1 group py-4">
 
             {/* day markers */}
             <div className="absolute inset-0 left-0 right-0 pointer-events-none">
@@ -378,16 +307,24 @@ export default function App() {
   const setShouldRun = useStore((s) => s.setShouldRun);
   const setProgress = useStore((s) => s.setProgress);
 
-  const handleTimelineClick = async (m) => {
-    setShouldRun(false); // pause store
-    setSelectedDay(m.day);
-    setProgress((m.day - 1) / 10); // jump to day
+  const [isLoadingGallery, setIsLoadingGallery] = useState(false);
 
-    try {
-      const res = await axios.get(`${BACKEND_URL}/api/mission/day/${m.day}`);
-      setGalleryData(res.data);
-    } catch (err) { console.error(err); }
-  };
+  const handleTimelineClick = async (m) => {
+  setShouldRun(false); 
+  setSelectedDay(m.day);
+  setGalleryData(null); 
+  setIsLoadingGallery(true); 
+  setProgress((m.day - 1) / 10); 
+
+  try {
+    const res = await axios.get(`${BACKEND_URL}/api/mission/day/${m.day}`);
+    setGalleryData(res.data);
+  } catch (err) { 
+    console.error(err);
+  } finally {
+    setIsLoadingGallery(false); 
+  }
+};
 
   useEffect(() => {
     const fetchMission = async () => {
@@ -438,7 +375,7 @@ export default function App() {
       <Canvas camera={{
         fov: 75,
         near: 0.1,
-        far: 10000000 // increase this to see objects further away
+        far: 10000000 // to see objects further away
       }}>
         <Stars radius={10000} depth={50} count={50000} factor={4} />
         <ambientLight intensity={0.2} />
@@ -466,31 +403,69 @@ export default function App() {
       </div>
 
       {/* gallery*/}
-      {selectedDay && galleryData && (
+      {selectedDay && (
         <div className="fixed inset-0 flex items-center justify-center z-[100] bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-blue-500/40 rounded-3xl w-[90%] max-w-[600px] max-h-[80vh] flex flex-col overflow-hidden">
+          <div className="bg-slate-900 border border-blue-500/40 rounded-3xl w-[90%] max-w-[600px] max-h-[80vh] flex flex-col overflow-hidden shadow-2xl">
+
+            {/* header with button to close modal */}
             <div className="p-6 border-b border-white/10 flex justify-between items-center">
-              <h2 className="text-blue-400 font-bold text-xl uppercase">{galleryData.label}</h2>
+              <h2 className="text-blue-400 font-bold text-xl uppercase">
+                {galleryData?.label || `Day ${selectedDay} Status`}
+              </h2>
               <button
                 onClick={() => {
                   setSelectedDay(null);
-                  setShouldRun(true); // resume animation loop
+                  setGalleryData(null);
+                  setShouldRun(true);
                 }}
-                className="text-white hover:text-red-500 text-2xl"
+                className="text-white hover:text-red-500 text-2xl transition-colors"
               >✕</button>
             </div>
-            <div className="overflow-y-auto p-6">
-              {galleryData.gallery?.map((img, i) => (
-                <div key={i} className="mb-6">
-                  <img src={img.url} className="w-full rounded-xl mb-2" />
-                  <p className="text-white text-sm font-bold">{img.title}</p>
-                  <p className="text-slate-400 text-xs italic">{img.description}</p>
-                </div>
-              ))}
+
+            <div className="overflow-y-auto p-6 min-h-[400px]">
+        {isLoadingGallery ? (
+          /* loading state */
+          <div className="flex flex-col items-center justify-center h-full py-20">
+            <div className="relative w-20 h-20 mb-8">
+              {/* spinning outer ring */}
+              <div className="absolute inset-0 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+              {/* pulsing inner dot */}
+              <div className="absolute inset-4 bg-blue-500/40 rounded-full animate-pulse"></div>
             </div>
+            <p className="text-blue-400 font-mono text-xs tracking-[0.3em] animate-pulse">
+              RECEIVING DATA...
+            </p>
           </div>
-        </div>
-      )}
+
+        ) : galleryData?.gallery?.length > 0 ? (
+          /* loaded data */
+          galleryData.gallery.map((img, i) => (
+            <div key={i} className="mb-10 last:mb-0 group">
+              <div className="relative overflow-hidden rounded-xl mb-3 border border-white/10">
+                <img 
+                  src={img.url} 
+                  className="w-full h-auto transform transition-transform duration-700 group-hover:scale-105" 
+                />
+              </div>
+              <p className="text-white text-md font-bold">{img.title}</p>
+              <p className="text-slate-400 text-sm italic leading-relaxed">{img.description}</p>
+            </div>
+          ))
+
+        ) : (
+          /* no data for day */
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+             <span className="text-4xl mb-4">📡</span>
+             <h3 className="text-white font-bold mb-2 uppercase tracking-widest">No Visual Data</h3>
+             <p className="text-slate-500 text-sm max-w-[280px]">
+               Day {selectedDay} telemetry contains no image packets.
+             </p>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }

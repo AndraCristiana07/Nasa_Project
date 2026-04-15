@@ -2,19 +2,8 @@ import { forwardRef, useState, useEffect, useMemo, useRef, Suspense } from 'reac
 import { useFrame } from '@react-three/fiber';
 import { useTexture, Html } from '@react-three/drei';
 import * as THREE from 'three';
-import axios from 'axios';
-import moonColor from './assets/2k_moon.jpg';
-import earthColor from './assets/2k_earth_daymap.jpg';
-import earthNormal from './assets/2k_earth_normal_map.jpg';
 import sunColor from './assets/2k_sun.jpg'
 import { useStore } from './store';
-// import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-// import orionModel from './assets/orionspacecraft.glb';
-// const loader = new GLTFLoader();
-
-// loader.load('./assets/orionspacecraft.glb', (gltf) => {
-//   scene.add(gltf.scene);
-// });
 
 import { useGLTF } from '@react-three/drei';
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
@@ -22,7 +11,9 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 const SPEED = 0.1
 const SUN_RADIUS = 2400;
-const MOON_RADIUS = 1.1;
+const MOON_RADIUS = 0.10;
+const ORION_RADIUS = 0.015;
+const EARTH_RADIUS = 0.3;
 
 const convertCoords = (lat, lng, radius) => {
   // convert to 3D Vector
@@ -53,7 +44,7 @@ const Earth = forwardRef(({ curve }, ref) => {
 
   return (
     <mesh ref={ref}>
-      <sphereGeometry args={[.7, 64, 64]} />
+      <sphereGeometry args={[EARTH_RADIUS, 64, 64]} />
       <meshStandardMaterial
         map={texture}
         roughness={0.7}
@@ -106,12 +97,10 @@ const Orion = forwardRef(({ curve }, ref) => {
   });
   return (
     <mesh ref={ref}>
-      {/* <sphereGeometry args={[0.35, 16, 16]} />
-      <meshStandardMaterial color="white" emissive="cyan" emissiveIntensity={2} /> */}
       <primitive
         object={scene}
         ref={ref}
-        scale={0.03} // Adjust size here
+        scale={ORION_RADIUS} 
         rotation={[Math.PI / 2, 0, 0]} />
     </mesh>
   );
@@ -235,15 +224,8 @@ const FlareMarker = ({ flare, setSunPaused }) => {
 const Sun = forwardRef(({ curve, isPaused, setIsPaused }, ref) => {
   const [flares, setFlares] = useState([])
   const progress = useStore((s) => s.progress);
-  // const [isPaused, setPaused] = useState(false);
   useEffect(() => {
-    // const fetchFlares = async () => {
-    //   try {
-    //     const res = await axios.get(`${BACKEND_URL}/api/solar-flares`);
-    //     setFlares(res.data)
-    //   } catch (err) { console.error("Fetch error:", err) }
-    // }
-    // fetchFlares()
+    
     // mock data for testing
     const mockFlares = [
       {
@@ -319,7 +301,17 @@ const Sun = forwardRef(({ curve, isPaused, setIsPaused }, ref) => {
         "color": "#f98029"
       }
     ]
-    setFlares(mockFlares)
+
+    const fetchFlares = async () => {
+      try {
+        const res = await axios.get(`${BACKEND_URL}/api/solar-flares`);
+        setFlares(res.data)
+      } catch (err) { 
+        console.error("Fetch error:", err) 
+        setFlares(mockFlares) // fallback to mock data on error
+      }
+    }
+    fetchFlares()
   }, [])
 
   useFrame(() => {
