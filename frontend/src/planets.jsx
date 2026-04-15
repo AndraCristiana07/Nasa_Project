@@ -4,7 +4,7 @@ import { useTexture, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import sunColor from './assets/2k_sun.jpg'
 import { useStore } from './store';
-
+import axios from 'axios';
 import { useGLTF } from '@react-three/drei';
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
@@ -15,6 +15,81 @@ const MOON_RADIUS = 0.10;
 const ORION_RADIUS = 0.015;
 const EARTH_RADIUS = 0.3;
 
+// mock data 
+const MOCK_FLARES = [
+  {
+    "lat": 20,
+    "lng": -23,
+    "id": "2026-04-10T14:45:00-FLR-001",
+    "class": "M5.4",
+    "peakTime": "2026-04-10T14:45Z",
+    "size": 1.54,
+    "color": "#f98029"
+  },
+  {
+    "lat": -15,
+    "lng": 45,
+    "id": "2026-04-11T02:10:00-FLR-001",
+    "class": "X1.2",
+    "peakTime": "2026-04-11T02:10Z",
+    "size": 2.24,
+    "color": "#f11515"
+  },
+  {
+    "lat": 42,
+    "lng": 10,
+    "id": "2026-04-11T08:30:00-FLR-002",
+    "class": "C8.1",
+    "peakTime": "2026-04-11T08:30Z",
+    "size": 0.905,
+    "color": "#efdf67"
+  },
+  {
+    "lat": -30,
+    "lng": -60,
+    "id": "2026-04-12T12:00:00-FLR-001",
+    "class": "M1.2",
+    "peakTime": "2026-04-12T12:00Z",
+    "size": 1.12,
+    "color": "#f98029"
+  },
+  {
+    "lat": 10,
+    "lng": 120,
+    "id": "2026-04-12T18:15:00-FLR-002",
+    "class": "X9.3",
+    "peakTime": "2026-04-12T18:15Z",
+    "size": 3.86,
+    "color": "#f11515"
+  },
+  {
+    "lat": -5,
+    "lng": -150,
+    "id": "2026-04-13T04:20:00-FLR-001",
+    "class": "C3.4",
+    "peakTime": "2026-04-13T04:20Z",
+    "size": 0.67,
+    "color": "#efdf67"
+  },
+  {
+    "lat": 65,
+    "lng": 30,
+    "id": "2026-04-13T09:50:00-FLR-002",
+    "class": "M9.9",
+    "peakTime": "2026-04-13T09:50Z",
+    "size": 1.99,
+    "color": "#f98029"
+  },
+  {
+    "lat": -45,
+    "lng": 85,
+    "id": "2026-04-13T22:10:00-FLR-003",
+    "class": "M4.0",
+    "peakTime": "2026-04-13T22:10Z",
+    "size": 1.4,
+    "color": "#f98029"
+  }
+]
 const convertCoords = (lat, lng, radius) => {
   // convert to 3D Vector
   const latRad = (90 - lat) * (Math.PI / 180)
@@ -86,7 +161,7 @@ const Orion = forwardRef(({ curve }, ref) => {
 
   useFrame(() => {
     if (!curve || !ref.current) return;
-    
+
     const point = curve.getPoint(progress);
     ref.current.position.copy(point);
 
@@ -100,7 +175,7 @@ const Orion = forwardRef(({ curve }, ref) => {
       <primitive
         object={scene}
         ref={ref}
-        scale={ORION_RADIUS} 
+        scale={ORION_RADIUS}
         rotation={[Math.PI / 2, 0, 0]} />
     </mesh>
   );
@@ -222,95 +297,22 @@ const FlareMarker = ({ flare, setSunPaused }) => {
 }
 
 const Sun = forwardRef(({ curve, isPaused, setIsPaused }, ref) => {
-  const [flares, setFlares] = useState([])
+  const [flares, setFlares] = useState(MOCK_FLARES)
   const progress = useStore((s) => s.progress);
+  
   useEffect(() => {
-    
-    // mock data for testing
-    const mockFlares = [
-      {
-        "lat": 20,
-        "lng": -23,
-        "id": "2026-04-10T14:45:00-FLR-001",
-        "class": "M5.4",
-        "peakTime": "2026-04-10T14:45Z",
-        "size": 1.54,
-        "color": "#f98029"
-      },
-      {
-        "lat": -15,
-        "lng": 45,
-        "id": "2026-04-11T02:10:00-FLR-001",
-        "class": "X1.2",
-        "peakTime": "2026-04-11T02:10Z",
-        "size": 2.24,
-        "color": "#f11515"
-      },
-      {
-        "lat": 42,
-        "lng": 10,
-        "id": "2026-04-11T08:30:00-FLR-002",
-        "class": "C8.1",
-        "peakTime": "2026-04-11T08:30Z",
-        "size": 0.905,
-        "color": "#efdf67"
-      },
-      {
-        "lat": -30,
-        "lng": -60,
-        "id": "2026-04-12T12:00:00-FLR-001",
-        "class": "M1.2",
-        "peakTime": "2026-04-12T12:00Z",
-        "size": 1.12,
-        "color": "#f98029"
-      },
-      {
-        "lat": 10,
-        "lng": 120,
-        "id": "2026-04-12T18:15:00-FLR-002",
-        "class": "X9.3",
-        "peakTime": "2026-04-12T18:15Z",
-        "size": 3.86,
-        "color": "#f11515"
-      },
-      {
-        "lat": -5,
-        "lng": -150,
-        "id": "2026-04-13T04:20:00-FLR-001",
-        "class": "C3.4",
-        "peakTime": "2026-04-13T04:20Z",
-        "size": 0.67,
-        "color": "#efdf67"
-      },
-      {
-        "lat": 65,
-        "lng": 30,
-        "id": "2026-04-13T09:50:00-FLR-002",
-        "class": "M9.9",
-        "peakTime": "2026-04-13T09:50Z",
-        "size": 1.99,
-        "color": "#f98029"
-      },
-      {
-        "lat": -45,
-        "lng": 85,
-        "id": "2026-04-13T22:10:00-FLR-003",
-        "class": "M4.0",
-        "peakTime": "2026-04-13T22:10Z",
-        "size": 1.4,
-        "color": "#f98029"
-      }
-    ]
-
     const fetchFlares = async () => {
       try {
         const res = await axios.get(`${BACKEND_URL}/api/solar-flares`);
-        setFlares(res.data)
-      } catch (err) { 
-        console.error("Fetch error:", err) 
-        setFlares(mockFlares) // fallback to mock data on error
+
+        // set real data if it has at least one flare
+        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+          setFlares(res.data);
+        } 
+      } catch (err) {
+        console.error("Solar API unreachable. Falling back to local data.", err);
       }
-    }
+    };
     fetchFlares()
   }, [])
 

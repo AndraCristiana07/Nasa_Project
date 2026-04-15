@@ -212,44 +212,19 @@ const MissionControl = ({ milestones }) => {
             />
           </div>
         </div>
-
       </div>
     </div>
   );
 };
 
 
-const ArtemisScene = ({ focusTarget, milestones }) => {
-  const [trajectories, setTrajectories] = useState({ orion: [], moon: [], earth: [] });
+const ArtemisScene = ({ focusTarget, milestones, trajectories }) => {
   const earthRef = useRef()
   const moonRef = useRef()
   const sunRef = useRef()
   const orionRef = useRef()
 
   const [isPaused, setIsPaused] = useState(false);
-
-  useEffect(() => {
-    const fetchPaths = async () => {
-
-      const promises = ['artemis', 'moon', 'earth', 'sun'].map(async (obj) => {
-        try {
-          const ret = await axios.get(`${BACKEND_URL}/api/trajectory/${obj}`);
-          return ret.data
-        } catch {
-          return undefined
-        }
-      });
-
-      const [o, m, e, s] = await Promise.all(promises);
-      setTrajectories({
-        orion: o,
-        moon: m,
-        earth: e,
-        sun: s
-      });
-    };
-    fetchPaths();
-  }, []);
 
   const curves = useMemo(() => {
     const format = (data) => data.map(p => new THREE.Vector3(p.x / 10000, p.z / 10000, -p.y / 10000));
@@ -300,77 +275,108 @@ const ArtemisScene = ({ focusTarget, milestones }) => {
 export default function App() {
   const [focusTarget, setFocusTarget] = useState('Earth');
 
+  const [trajectories, setTrajectories] = useState({ orion: [], moon: [], earth: [] });
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+
   const [milestones, setMilestones] = useState([]);
   const [selectedDay, setSelectedDay] = useState(null);
-  const [galleryData, setGalleryData] = useState(null);
 
   const setShouldRun = useStore((s) => s.setShouldRun);
   const setProgress = useStore((s) => s.setProgress);
 
+  const [galleryData, setGalleryData] = useState(null);
   const [isLoadingGallery, setIsLoadingGallery] = useState(false);
 
-  const handleTimelineClick = async (m) => {
-  setShouldRun(false); 
-  setSelectedDay(m.day);
-  setGalleryData(null); 
-  setIsLoadingGallery(true); 
-  setProgress((m.day - 1) / 10); 
-
-  try {
-    const res = await axios.get(`${BACKEND_URL}/api/mission/day/${m.day}`);
-    setGalleryData(res.data);
-  } catch (err) { 
-    console.error(err);
-  } finally {
-    setIsLoadingGallery(false); 
-  }
-};
-
   useEffect(() => {
-    const fetchMission = async () => {
-      try {
-        const res = await axios.get(`${BACKEND_URL}/api/mission/trajectory`);
-        const milestones = res.data.milestones;
+  const fetchMissionData = async () => {
+    try {
+      const trajectoryKeys = ['artemis', 'moon', 'earth', 'sun'];
+      
+      const requests = [
+        axios.get(`${BACKEND_URL}/api/mission/trajectory`),
+        ...trajectoryKeys.map(key => axios.get(`${BACKEND_URL}/api/trajectory/${key}`))
+      ];
 
-        setMilestones(milestones);
-      } catch (err) {
-        console.error("Moon Data Load Fail:", err);
-      }
-    };
-    fetchMission();
-  }, []);
+      const responses = await Promise.all(requests);
+
+      const [missionRes, orionRes, moonRes, earthRes, sunRes] = responses;
+
+      setMilestones(missionRes.data.milestones);
+      setTrajectories({
+        orion: orionRes.data,
+        moon: moonRes.data,
+        earth: earthRes.data,
+        sun: sunRes.data
+      });
+
+      setIsDataLoaded(true);
+      
+    } catch (err) {
+      console.error("Data Load Fail:", err);
+    }
+  };
+
+  fetchMissionData();
+}, []);
+  const handleTimelineClick = async (m) => {
+    setShouldRun(false);
+    setSelectedDay(m.day);
+    setGalleryData(null);
+    setIsLoadingGallery(true);
+    setProgress((m.day - 1) / 10);
+
+    try {
+      const res = await axios.get(`${BACKEND_URL}/api/mission/day/${m.day}`);
+      setGalleryData(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoadingGallery(false);
+    }
+  };
 
   return (
     <div style={{ width: '100vw', height: '100vh', background: '#000', position: 'relative' }}>
-
-      {/* UI Overlay */}
-      <div style={{
-        position: 'absolute',
-        top: 20,
-        left: 20,
-        zIndex: 10,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px'
-      }}>
-        {['Earth', 'Moon', 'Orion', 'Sun'].map(name => (
-          <button
-            key={name}
-            onClick={() => setFocusTarget(name)}
-            style={{
-              padding: '10px',
-              cursor: 'pointer',
-              background: focusTarget === name ? 'cyan' : '#333',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              fontWeight: 'bold'
-            }}
-          >
-            Focus {name}
-          </button>
-        ))}
-      </div>
+      {!isDataLoaded && (
+        <div className="fixed inset-0 z-[500] bg-black flex flex-col items-center justify-center">
+          <div className="w-64 h-[2px] bg-blue-900/30 overflow-hidden relative">
+            <div className="absolute inset-0 bg-blue-500 animate-loading-bar" />
+          </div>
+          <p className="mt-4 text-blue-400 font-mono text-[10px] tracking-[0.4em] animate-pulse">
+            ESTABLISHING SATELLITE DATA...
+          </p>
+        </div>
+      )}
+      {/* UI to change focus */}
+      {isDataLoaded && (
+        <div style={{
+          position: 'absolute',
+          top: 20,
+          left: 20,
+          zIndex: 10,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px'
+        }}>
+          {['Earth', 'Moon', 'Orion', 'Sun'].map(name => (
+            <button
+              key={name}
+              onClick={() => setFocusTarget(name)}
+              style={{
+                padding: '10px',
+                cursor: 'pointer',
+                background: focusTarget === name ? 'cyan' : '#333',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                fontWeight: 'bold'
+              }}
+            >
+              Focus {name}
+            </button>
+          ))}
+        </div>
+      )}
 
       <Canvas camera={{
         fov: 75,
@@ -379,7 +385,9 @@ export default function App() {
       }}>
         <Stars radius={10000} depth={50} count={50000} factor={4} />
         <ambientLight intensity={0.2} />
-        <ArtemisScene focusTarget={focusTarget} milestones={milestones} />
+        {isDataLoaded && (
+          <ArtemisScene focusTarget={focusTarget} milestones={milestones} trajectories={trajectories} />
+        )}
       </Canvas>
 
       <MissionControl milestones={milestones} />
@@ -423,49 +431,49 @@ export default function App() {
             </div>
 
             <div className="overflow-y-auto p-6 min-h-[400px]">
-        {isLoadingGallery ? (
-          /* loading state */
-          <div className="flex flex-col items-center justify-center h-full py-20">
-            <div className="relative w-20 h-20 mb-8">
-              {/* spinning outer ring */}
-              <div className="absolute inset-0 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-              {/* pulsing inner dot */}
-              <div className="absolute inset-4 bg-blue-500/40 rounded-full animate-pulse"></div>
-            </div>
-            <p className="text-blue-400 font-mono text-xs tracking-[0.3em] animate-pulse">
-              RECEIVING DATA...
-            </p>
-          </div>
+              {isLoadingGallery ? (
+                /* loading state */
+                <div className="flex flex-col items-center justify-center h-full py-20">
+                  <div className="relative w-20 h-20 mb-8">
+                    {/* spinning outer ring */}
+                    <div className="absolute inset-0 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+                    {/* pulsing inner dot */}
+                    <div className="absolute inset-4 bg-blue-500/40 rounded-full animate-pulse"></div>
+                  </div>
+                  <p className="text-blue-400 font-mono text-xs tracking-[0.3em] animate-pulse">
+                    RECEIVING DATA...
+                  </p>
+                </div>
 
-        ) : galleryData?.gallery?.length > 0 ? (
-          /* loaded data */
-          galleryData.gallery.map((img, i) => (
-            <div key={i} className="mb-10 last:mb-0 group">
-              <div className="relative overflow-hidden rounded-xl mb-3 border border-white/10">
-                <img 
-                  src={img.url} 
-                  className="w-full h-auto transform transition-transform duration-700 group-hover:scale-105" 
-                />
-              </div>
-              <p className="text-white text-md font-bold">{img.title}</p>
-              <p className="text-slate-400 text-sm italic leading-relaxed">{img.description}</p>
-            </div>
-          ))
+              ) : galleryData?.gallery?.length > 0 ? (
+                /* loaded data */
+                galleryData.gallery.map((img, i) => (
+                  <div key={i} className="mb-10 last:mb-0 group">
+                    <div className="relative overflow-hidden rounded-xl mb-3 border border-white/10">
+                      <img
+                        src={img.url}
+                        className="w-full h-auto transform transition-transform duration-700 group-hover:scale-105"
+                      />
+                    </div>
+                    <p className="text-white text-md font-bold">{img.title}</p>
+                    <p className="text-slate-400 text-sm italic leading-relaxed">{img.description}</p>
+                  </div>
+                ))
 
-        ) : (
-          /* no data for day */
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-             <span className="text-4xl mb-4">📡</span>
-             <h3 className="text-white font-bold mb-2 uppercase tracking-widest">No Visual Data</h3>
-             <p className="text-slate-500 text-sm max-w-[280px]">
-               Day {selectedDay} telemetry contains no image packets.
-             </p>
+              ) : (
+                /* no data for day */
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                  <span className="text-4xl mb-4">📡</span>
+                  <h3 className="text-white font-bold mb-2 uppercase tracking-widest">No Visual Data</h3>
+                  <p className="text-slate-500 text-sm max-w-[280px]">
+                    Day {selectedDay} telemetry contains no image packets.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
-    </div>
-  </div>
-)}
+        </div>
+      )}
     </div>
   );
 }
