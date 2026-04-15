@@ -111,7 +111,7 @@ const Earth = forwardRef(({ curve }, ref) => {
 
   useFrame(() => {
     const { progress, shouldRun } = useStore.getState();
-     if (ref.current && curve) {
+    if (ref.current && curve) {
       ref.current.position.copy(curve.getPoint(progress));
 
       if (shouldRun) {
@@ -140,7 +140,7 @@ const Moon = forwardRef(({ curve }, ref) => {
 
   useFrame(() => {
     const { progress, shouldRun } = useStore.getState();
-   
+
     if (ref.current && curve) {
       ref.current.position.copy(curve.getPoint(progress));
 
@@ -186,17 +186,17 @@ const Orion = forwardRef(({ curve }, ref) => {
     </mesh>
   );
 });
-useGLTF.preload('/models/your-model.glb');
-// --- SUN ---
+useGLTF.preload('/orionspacecraft.glb');
 
-const FlareMarker = ({ flare }) => {
+// --- SUN ---
+const FlareMarker = ({ flare, sunRef }) => {
   const [hovered, setHover] = useState(false)
   const setShouldRun = useStore((s) => s.setShouldRun);
   const flarePaused = useRef(false);
   const meshRef = useRef()
 
   const { curve, startPoint, thickness, baseSize, lightPower, emissivePow } = useMemo(() => {
-    const start = convertCoords(flare.lat, flare.lng, SUN_RADIUS + 20)
+    const start = convertCoords(flare.lat, flare.lng, SUN_RADIUS + 10)
 
     const midHeight = SUN_RADIUS + 20 + (flare.size * 50)
     const mid = convertCoords(flare.lat + 0.5, flare.lng + 0.5, midHeight)
@@ -221,6 +221,25 @@ const FlareMarker = ({ flare }) => {
     meshRef.current.material.emissiveIntensity = 2 + Math.sin(t * pulseSpeed) * 1.5
   })
 
+  // hover calculation to only be able to hover when flare is in "front" relative to the camera
+  const handlePointerOver = (e) => {
+    e.stopPropagation();
+    if (!sunRef?.current) return;
+
+    const distToFlare = e.distance;
+    const distToSun = e.camera.position.distanceTo(sunRef.current.position);
+
+    if (distToFlare > distToSun + 5) return;
+
+    setHover(true);
+    const isCurrentlyRunning = useStore.getState().shouldRun;
+    if (isCurrentlyRunning) {
+      setShouldRun(false);
+      flarePaused.current = true;
+    }
+    document.body.style.cursor = 'pointer';
+  };
+
   return (
     <>
       <group>
@@ -240,31 +259,32 @@ const FlareMarker = ({ flare }) => {
         {/* hitbox for hovering */}
         <mesh
           position={startPoint}
-          onPointerOver={(e) => {
-            const isCurrentlyRunning = useStore.getState().shouldRun;
-            e.stopPropagation();
-            setHover(true);
-
-            if (isCurrentlyRunning) {
-              setShouldRun(false);
-              flarePaused.current = true;
+          onUpdate={(self) => {
+            if (sunRef.current) {
+              // point at the sun
+              self.lookAt(sunRef.current.position);
+              // rotate 180 degrees to face the camera
+              self.rotateY(Math.PI);
             }
-            document.body.style.cursor = 'pointer';
           }}
+          onPointerOver={handlePointerOver}
           onPointerOut={() => {
             setHover(false);
-
-            // restart if curr flare was the reason it stopped
             if (flarePaused.current) {
               setShouldRun(true);
-              flarePaused.current = false; // reset the flag
+              flarePaused.current = false;
             }
             document.body.style.cursor = 'auto';
           }}
+
           onPointerMove={(e) => e.stopPropagation()}
         >
-          <boxGeometry args={[flare.size * 60, flare.size * 60, flare.size * 60]} />
-          <meshBasicMaterial visible={false} />
+          <circleGeometry args={[flare.size * 60, 60]} />
+          <meshBasicMaterial
+            visible={false}
+            depthWrite={true}
+            depthTest={true}
+          />
         </mesh>
 
         {/* flare halo */}
@@ -317,6 +337,8 @@ const FlareMarker = ({ flare }) => {
 
 const Sun = forwardRef(({ curve }, ref) => {
   const [flares, setFlares] = useState(MOCK_FLARES)
+  const flareGroupRef = useRef();
+  const texture = useTexture(sunColor);
 
   useEffect(() => {
     const fetchFlares = async () => {
@@ -336,48 +358,52 @@ const Sun = forwardRef(({ curve }, ref) => {
 
   useFrame(() => {
     const { progress, shouldRun } = useStore.getState();
-    
-     if (ref.current && curve) {
-      ref.current.position.copy(curve.getPoint(progress));
+
+    if (ref.current && curve) {
+      const newPos = curve.getPoint(progress);
+
+      ref.current.position.copy(newPos);
+
+      if (flareGroupRef.current) {
+        flareGroupRef.current.position.copy(newPos);
+      }
 
       if (shouldRun) {
         ref.current.rotation.y += 0.002;
+        if (flareGroupRef.current) {
+          flareGroupRef.current.rotation.y += 0.002;
+        }
       }
     }
   });
 
-  const texture = useTexture(sunColor);
-
   return (
-    <mesh
-      ref={ref}
-      onClick={(e) => {
-        e.stopPropagation();
-      }}
-      position={[0, 0, 0]}>
+    <group>
+      <mesh
+        ref={ref}
+        onPointerOver={(e) => e.stopPropagation()}
+        onPointerMove={(e) => e.stopPropagation()}
+        onPointerOut={(e) => e.stopPropagation()}
+        position={[0, 0, 0]}
+      >
+        <sphereGeometry args={[SUN_RADIUS, 64, 64]} />
+        <meshStandardMaterial
+          map={texture}
+          emissive={new THREE.Color('#ffaa00')}
+          emissiveIntensity={2}
+          emissiveMap={texture}
+          transparent={false}
+          depthWrite={true}
+        />
+        <pointLight intensity={15} distance={20000} decay={0} color="#fff5d1" />
+      </mesh>
 
-      <sphereGeometry args={[SUN_RADIUS, 64, 64]} />
-
-      <meshStandardMaterial
-        map={texture}
-        emissive={new THREE.Color('#ffaa00')}
-        emissiveIntensity={2}
-        emissiveMap={texture}
-      />
-
-      {/* the light source for the solar system */}
-      <pointLight
-        intensity={15}
-        distance={20000}
-        decay={0}
-        color="#fff5d1"
-      />
-
-      {flares.map(flare => (
-        <FlareMarker key={flare.id} flare={flare} />
-      ))}
-    </mesh>
+      <group ref={flareGroupRef}>
+        {flares.map(flare => (
+          <FlareMarker key={flare.id} flare={flare} sunRef={ref} />
+        ))}
+      </group>
+    </group>
   );
 });
-
 export { Moon, Earth, Orion, Sun };

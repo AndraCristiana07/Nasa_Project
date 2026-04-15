@@ -465,7 +465,7 @@ export default function App() {
                     <div className="relative overflow-hidden rounded-xl mb-3 border border-white/10">
                       <img
                         src={img.url}
-                        className="w-full h-auto transform transition-transform duration-700 group-hover:scale-105"
+                        className="w-full h-auto transform transition-transform duration-700 hover:scale-115"
                       />
                     </div>
                     <p className="text-white text-md font-bold">{img.title}</p>
