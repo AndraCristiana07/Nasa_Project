@@ -259,6 +259,7 @@ const FlareMarker = ({ flare, sunRef }) => {
 
         {/* flare halo */}
         <mesh position={startPoint}
+          data-testid="flare-halo"
           onPointerOver={handlePointerOver}
           onPointerOut={() => {
             setHover(false);
@@ -388,4 +389,4 @@ const Sun = forwardRef(({ curve }, ref) => {
     </group>
   );
 });
-export { Moon, Earth, Orion, Sun };
+export { Moon, Earth, Orion, Sun, FlareMarker, convertCoords };

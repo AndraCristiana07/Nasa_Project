@@ -8,7 +8,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     // testing-library/jest-dom matchers
-    setupFiles: './tests/setup.js',
+    setupFiles: './tests/setup.jsx',
     globals: true,
   },
 })

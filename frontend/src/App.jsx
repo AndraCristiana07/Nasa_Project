@@ -375,20 +375,21 @@ export default function App() {
         )}
       </Canvas>
 
-      {/* UI to change focus */}
 
       {isDataLoaded && !isGalleryOpen && (
         <>
+          {/* UI to change focus */}
           <div className="absolute top-8 left-8 z-10 flex flex-col gap-3">
             {/* header */}
             <div className="mb-2 px-1">
-              <p className="text-blue-500 font-mono text-[12px] tracking-[0.3em] uppercase opacity-70">
+              <h2 data-testid="focus-target-header" className="text-blue-500 font-mono text-[12px] tracking-[0.3em] uppercase opacity-70">
                 Focus Target
-              </p>
+              </h2>
               <div className="h-[1px] w-full bg-blue-500/50 my-1" />
             </div>
             {['Earth', 'Moon', 'Orion', 'Sun'].map(name => (
               <button
+                data-testid={`focus-btn-${name.toLowerCase()}`}
                 key={name}
                 onClick={() => setFocusTarget(name)}
                 className={`
