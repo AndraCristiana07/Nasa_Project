@@ -147,7 +147,7 @@ const MissionControl = ({ milestones }) => {
 
             {/* day markers */}
             <div className="absolute inset-0 left-0 right-0 pointer-events-none">
-              {milestones.map((m) => {
+              {milestones?.map((m) => {
                 const percent = ((m.day - 1) / totalDays) * 100;
 
                 return (
@@ -240,7 +240,7 @@ const ArtemisScene = ({ focusTarget, milestones, trajectories }) => {
         <Earth ref={earthRef} curve={curves.earth} isPaused={isPaused} />
         <Moon ref={moonRef} curve={curves.moon} isPaused={isPaused} setIsPaused={setIsPaused} />
         <Orion ref={orionRef} curve={curves.orion} isPaused={isPaused} />
-        {activeRef && <CameraTracker targetRef={activeRef} targetName={focusTarget}/>}
+        {activeRef && <CameraTracker targetRef={activeRef} targetName={focusTarget} />}
       </group>
 
     </>
@@ -269,7 +269,7 @@ export default function App() {
     const fetchMissionData = async () => {
       try {
         const trajectoryKeys = ['artemis', 'moon', 'earth', 'sun'];
-
+        
         const requests = [
           axios.get(`${BACKEND_URL}/api/mission/trajectory`),
           ...trajectoryKeys.map(key => axios.get(`${BACKEND_URL}/api/trajectory/${key}`))
@@ -378,33 +378,43 @@ export default function App() {
       {/* UI to change focus */}
 
       {isDataLoaded && !isGalleryOpen && (
-        <><div style={{
-          position: 'absolute',
-          top: 20,
-          left: 20,
-          zIndex: 10,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '10px'
-        }}>
-          {['Earth', 'Moon', 'Orion', 'Sun'].map(name => (
-            <button
-              key={name}
-              onClick={() => setFocusTarget(name)}
-              style={{
-                padding: '10px',
-                cursor: 'pointer',
-                background: focusTarget === name ? 'cyan' : '#333',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                fontWeight: 'bold'
-              }}
-            >
-              Focus {name}
-            </button>
-          ))}
-        </div><MissionControl milestones={milestones} />
+        <>
+          <div className="absolute top-8 left-8 z-10 flex flex-col gap-3">
+            {/* header */}
+            <div className="mb-2 px-1">
+              <p className="text-blue-500 font-mono text-[12px] tracking-[0.3em] uppercase opacity-70">
+                Focus Target
+              </p>
+              <div className="h-[1px] w-full bg-blue-500/50 my-1" />
+            </div>
+            {['Earth', 'Moon', 'Orion', 'Sun'].map(name => (
+              <button
+                key={name}
+                onClick={() => setFocusTarget(name)}
+                className={`
+                  relative px-4 py-2 text-left transition-all duration-300 group
+                  font-mono text-[11px] tracking-[0.2em] uppercase
+                  border-l-2
+                  ${focusTarget === name
+                    ? 'bg-blue-500/20 border-blue-400 text-blue-400 shadow-[0_0_15px_rgba(96,165,250,0.2)]'
+                    : 'bg-black/40 border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-300'
+                  }
+                `}
+              >
+                {focusTarget === name && (
+                  <div className="absolute inset-0 to-transparent animate-pulse" />
+                )}
+
+                {/* ">" to show focus */}
+                <span className="relative z-10">
+                  {focusTarget === name ? `> ${name}` : name}
+                </span>
+
+                {/* small corner detail */}
+                <div className={`absolute top-0 right-0 w-1 h-1 border-t border-r transition-opacity ${focusTarget === name ? 'border-blue-400 opacity-100' : 'border-white/20 opacity-0 group-hover:opacity-100'}`} />
+              </button>
+            ))}
+          </div><MissionControl milestones={milestones} />
           {/* timeline */}
           <div className="fixed right-6 top-1/2 -translate-y-1/2 w-64 max-h-[80vh] z-50 flex flex-col pointer-events-none">
             <div className="mb-4 px-2 pointer-events-auto">
@@ -418,11 +428,11 @@ export default function App() {
                     handleTimelineClick(m);
                     useStore.getState().setIsGalleryOpen(true);
                   }}
-                  className="flex group relative pl-4 transition-all hover:translate-x-1"
+                  className="flex group relative pl-4 transition-all hover:translate-x-1 "
                 >
-                  <div className={`absolute left-0 top-0 bottom-0 w-[2px] ${m.weather?.risk === 'HIGH' ? 'bg-red-500' : 'bg-slate-800'}`} />
+                  <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-slate-800 group-hover:bg-blue-500"/>
                   <div className="flex flex-col text-left py-1">
-                    <span className="text-white text-[12px] font-mono opacity-50">DAY {String(m.day).padStart(2, '0')}</span>
+                    <span className="text-white text-[12px] font-mono opacity-50 group-hover:text-blue-400">DAY {String(m.day).padStart(2, '0')}</span>
                     <h4 className="text-white text-sm font-semibold">{m.label}</h4>
                   </div>
                 </button>
@@ -434,7 +444,8 @@ export default function App() {
       {/* gallery*/}
       {isGalleryOpen && selectedDay && (
         <div className="fixed inset-0 z-[100] flex justify-end pointer-events-none">
-          <div className="absolute border border-blue-500/40 inset-0 pointer-events-auto" onClick={() => useStore.getState().setIsGalleryOpen(false)} />
+          <div className="absolute border border-blue-500/40 inset-0 pointer-events-auto"
+            onClick={() => useStore.getState().setIsGalleryOpen(false)} />
 
           <div className="
             w-full max-w-[450px] 
@@ -466,7 +477,7 @@ export default function App() {
             <div className="overflow-y-auto snap-y snap-mandatory p-6 min-h-[400px] gallery-scrollbar flex-1 p-8 flex flex-col">
               {isLoadingGallery ? (
                 /* loading state */
-                <div className="flex-1 flex flex-col items-center justify-center text-center "> 
+                <div className="flex-1 flex flex-col items-center justify-center text-center ">
                   <div className="relative w-20 h-20 mb-8">
                     {/* spinning outer ring */}
                     <div className="absolute inset-0 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
