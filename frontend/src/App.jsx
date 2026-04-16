@@ -40,8 +40,6 @@ function CameraTracker({ targetRef, targetName }) {
   const lastPosition = useRef(new THREE.Vector3());
 
   const isSmallScreen = size.width < 768;
-  // calc safe dist based on radius
-  // const currentRadius = targetRef.current?.geometry?.parameters?.radius || 0.1;
 
   // move the camera at the same time as the planet moved
   useFrame(() => {
@@ -49,10 +47,10 @@ function CameraTracker({ targetRef, targetName }) {
       const currentPosition = targetRef.current.position;
 
       const radius = targetRef.current.geometry?.parameters?.radius || 1;
-      
-      let minBuffer = 1.1; 
-      if (targetName === 'Sun') minBuffer = 1.02;   
-      if (targetName === 'Earth') minBuffer = 1.5; 
+
+      let minBuffer = 1.1;
+      if (targetName === 'Sun') minBuffer = 1.02;
+      if (targetName === 'Earth') minBuffer = 1.5;
       if (targetName === 'Moon') minBuffer = 1.2;
       if (targetName === 'Orion') minBuffer = 2.5;
       controlsRef.current.minDistance = radius * minBuffer;
@@ -73,49 +71,44 @@ function CameraTracker({ targetRef, targetName }) {
   // when the target changes, move the camera to it
   useEffect(() => {
     if (targetRef.current && camera && controlsRef.current) {
-      const targetPos = targetRef.current.position;
+      const targetPos = new THREE.Vector3();
+      targetRef.current.getWorldPosition(targetPos);
 
       // get the radius of the sphere 
-      let radius = targetRef.current.geometry?.parameters?.radius || 1;
+      let radius = 0.1;
+      if (targetName === 'Sun') radius = 2400;
+      else if (targetName === 'Earth') radius = 0.3;
+      else if (targetName === 'Moon') radius = 0.1;
+      else if (targetName === 'Orion') radius = 0.015;
 
-      if (!radius || radius === 1) {
-        if (targetName === 'Sun') radius = 2400;
-        else if (targetName === 'Earth') radius = 0.3;
-        else if (targetName === 'Moon') radius = 0.10;
-        else if (targetName === 'Orion') radius = 0.015;
-        else radius = 1;
+      const currentDist = camera.position.distanceTo(targetPos);
+      if (currentDist > radius * 100) {
+        camera.position.copy(targetPos).add(new THREE.Vector3(0, 0, 10));
       }
 
-      // to be diferent for a small screen
-      let multiplier = isSmallScreen ? 4.0 : 2.5;
-
-      if (targetName === 'Sun') {
-        multiplier = isSmallScreen ? 4.5 : 2.2;
-      } else if (targetName === 'Orion') {
-        multiplier = isSmallScreen ? 15.0 : 10.0;
-      } else if (targetName === 'Moon') {
-        multiplier = isSmallScreen ? 5.0 : 3.0;
-      } else if (targetName === 'Earth') {
-        multiplier = isSmallScreen ? 4.5 : 3.0;
-      }
-
-      const totalPush = radius * multiplier;
       // calculate the direction from target to camera
       let direction = new THREE.Vector3().subVectors(camera.position, targetPos).normalize();
       if (direction.length() === 0 || isNaN(direction.x)) direction.set(0, 0, 1);
 
+      // to be diferent for a small screen
+      let multiplier = isSmallScreen ? 4.0 : 2.5;
+      if (targetName === 'Sun') multiplier = isSmallScreen ? 4.5 : 2.2;
+      if (targetName === 'Orion') multiplier = isSmallScreen ? 15.0 : 10.0;
+
+      const totalPush = radius * multiplier;
       // move the camera to the new position: Target + (Direction * Total Distance)
       const newPos = new THREE.Vector3().copy(targetPos).add(direction.multiplyScalar(totalPush));
 
       camera.position.copy(newPos);
       camera.lookAt(targetPos);
 
-      lastPosition.current.copy(targetPos);
+      controlsRef.current.minDistance = radius * 1.15;
       controlsRef.current.target.copy(targetPos);
       controlsRef.current.update();
-    }
-  }, [targetRef, targetName, isSmallScreen]);
 
+      lastPosition.current.copy(targetPos);
+    }
+  }, [targetName, isSmallScreen]);
   return (
     <><OrbitControls
       ref={controlsRef}
@@ -123,7 +116,7 @@ function CameraTracker({ targetRef, targetName }) {
       makeDefault
       dampingFactor={0.05} // maybe
       maxDistance={10000000} />
-      
+
       <EffectComposer>
         <Bloom
           luminanceThreshold={0.5}
@@ -579,11 +572,13 @@ export default function App() {
         </div>
       )}
 
-      <Canvas camera={{
-        fov: 75,
-        near: 0.001,
-        far: 10000000 // to see objects further away
-      }}>
+      <Canvas
+        gl={{ logarithmicDepthBuffer: true }}
+        camera={{
+          fov: 75,
+          near: 0.01,
+          far: 10000000 // to see objects further away
+        }}>
         <Stars radius={500000} depth={50} count={50000} factor={4} />
         <ambientLight intensity={0.2} />
         {isDataLoaded && (

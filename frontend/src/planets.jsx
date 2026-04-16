@@ -181,7 +181,12 @@ const Orion = forwardRef(({ curve }, ref) => {
   return (
     <mesh ref={ref}>
       <sphereGeometry args={[0.02, 8, 8]} />
-      <meshBasicMaterial visible={false} />
+      <meshBasicMaterial
+        visible={false}
+        transparent={true}
+        depthWrite={false}
+        depthTest={false}
+      />
       <primitive
         object={scene}
         ref={ref}
@@ -281,6 +286,7 @@ const FlareMarker = ({ flare, sunRef }) => {
             opacity={0.5}
             blending={THREE.AdditiveBlending}
             depthWrite={false}
+            depthTest={true}
           />
         </mesh>
 
@@ -379,7 +385,9 @@ const Sun = forwardRef(({ curve }, ref) => {
           emissiveIntensity={2}
           emissiveMap={texture}
           transparent={false}
+          opacity={1}
           depthWrite={true}
+          side={THREE.FrontSide}
         />
         <pointLight intensity={15} distance={20000} decay={0} color="#fff5d1" />
       </mesh>
