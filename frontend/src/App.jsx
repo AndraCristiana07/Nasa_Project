@@ -34,7 +34,7 @@ const Trajectory = ({ curve, color = "white" }) => {
   )
 }
 
-function CameraTracker({ targetRef }) {
+function CameraTracker({ targetRef, targetName }) {
   const { camera } = useThree();
   const controlsRef = useRef();
   const lastPosition = useRef(new THREE.Vector3());
@@ -87,7 +87,7 @@ function CameraTracker({ targetRef }) {
       ref={controlsRef}
       enablePan={false}
       makeDefault
-      minDistance={0.5}
+      minDistance={targetName === 'Moon' || targetName === 'Orion' ? 0.2 : 0.5}
       maxDistance={10000000} />
       <EffectComposer>
         <Bloom
@@ -240,7 +240,7 @@ const ArtemisScene = ({ focusTarget, milestones, trajectories }) => {
         <Earth ref={earthRef} curve={curves.earth} isPaused={isPaused} />
         <Moon ref={moonRef} curve={curves.moon} isPaused={isPaused} setIsPaused={setIsPaused} />
         <Orion ref={orionRef} curve={curves.orion} isPaused={isPaused} />
-        {activeRef && <CameraTracker targetRef={activeRef} />}
+        {activeRef && <CameraTracker targetRef={activeRef} targetName={focusTarget}/>}
       </group>
 
     </>
