@@ -177,8 +177,11 @@ const Orion = forwardRef(({ curve }, ref) => {
       ref.current.lookAt(nextPoint);
     }
   });
+
   return (
     <mesh ref={ref}>
+      <sphereGeometry args={[0.02, 8, 8]} />
+      <meshBasicMaterial visible={false} />
       <primitive
         object={scene}
         ref={ref}
