@@ -225,7 +225,6 @@ const MissionControl = ({ milestones }) => {
   );
 };
 
-
 const ArtemisScene = ({ focusTarget, milestones, trajectories }) => {
   const earthRef = useRef()
   const moonRef = useRef()
@@ -329,7 +328,7 @@ const Timeline = ({ milestones, onTimelineClick }) => {
   return (
     <div className="
       fixed flex flex-col pointer-events-none
-      bottom-[100px] left-0 w-full px-4
+      bottom-[120px] left-0 w-full px-4
       md:right-6 md:top-8 md:translate-y-0 md:left-auto md:bottom-auto
       md:w-64 md:max-h-[calc(100vh-220px)] z-50
       xl:top-1/2 xl:-translate-y-1/2 
@@ -591,7 +590,6 @@ export default function App() {
         <>
           <FocusMenu focusTarget={focusTarget} setFocusTarget={setFocusTarget} />
           <MissionControl milestones={milestones} />
-          {/* timeline */}
           <Timeline milestones={milestones} onTimelineClick={handleTimelineClick} />
 
         </>
