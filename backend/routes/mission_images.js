@@ -10,10 +10,10 @@ const getArchive = (req, res) => {
         let allImages = [];
         Object.keys(organizedData).forEach(date => {
             const dayImages = organizedData[date].map(item => ({
-                url: item.links[0].href,
-                title: item.data[0].title,
-                description: item.data[0].description,
-                keywords: item.data[0].keywords || []
+                url: item.links?.[0]?.href || '',
+                title: item.data?.[0]?.title || 'Untitled',
+                description: item.data?.[0]?.description || '',
+                keywords: item.data?.[0]?.keywords || []
             }));
             allImages = [...allImages, ...dayImages];
         });

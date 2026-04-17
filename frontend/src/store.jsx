@@ -7,6 +7,7 @@ export const useStore = create((set) => ({
   isGalleryOpen: false,
   isSearchOpen: false,
   globalSearchQuery: "",
+  isOrbitLoading: false,
 
   advance: (dt) => set((state) => {
     return ({
@@ -18,4 +19,5 @@ export const useStore = create((set) => ({
   setIsGalleryOpen: (open) => set({ isGalleryOpen: open }),
   setIsSearchOpen: (val) => set({ isSearchOpen: val }),
   setGlobalSearchQuery: (val) => set({ globalSearchQuery: val }),
+  setIsOrbitLoading: (val) => set({ isOrbitLoading: val }),
 }))

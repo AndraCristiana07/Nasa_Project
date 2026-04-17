@@ -9,22 +9,35 @@ describe('Archive Logic Test', () => {
     beforeEach(() => {
         req = {};
         res = {
-            status: jest.fn().mockReturnThis(), 
+            status: jest.fn().mockReturnThis(),
             json: jest.fn().mockReturnThis()
         };
     });
 
     it('should flatten multiple days of data into one list', () => {
         const mockData = {
-            "Day 1": [{ links: [{href: 'url1'}], data: [{title: 'T1', description: 'D1'}] }],
-            "Day 2": [{ links: [{href: 'url2'}], data: [{title: 'T2', description: 'D2'}] }]
+            "Day 1": [{
+                links: [{ href: 'url1' }],
+                data: [{
+                    title: 'T1',
+                    description: 'D1', 
+                    keywords: ['space'] 
+                }]
+            }],
+            "Day 2": [{
+                links: [{ href: 'url2' }],
+                data: [{
+                    title: 'T2',
+                    description: 'D2' 
+                }]
+            }]
         };
 
         fs.readFileSync.mockReturnValue(JSON.stringify(mockData));
 
         getArchive(req, res);
 
-        // Vvrify the response is a flattened array of 2 items
+        // verify the response is a flattened array of 2 items
         const responseData = res.json.mock.calls[0][0];
         expect(responseData.length).toBe(2);
         expect(responseData[0].title).toBe('T1');

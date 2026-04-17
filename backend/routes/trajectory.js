@@ -1,8 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
-const fs = require('fs');
-
 
 // memory cache
 const cache = {};
@@ -22,13 +20,6 @@ const parseNasaVectors = (planet, data) => {
     const startIndex = data.indexOf(startMarker);
     const endIndex = data.indexOf(endMarker);
 
-    try {
-        fs.writeFileSync(`${planet}.txt`, data, 'utf8');
-        console.log(`File ${planet}.txt saved!`);
-    } catch (err) {
-        console.error("Failed to write file:", err);
-    }
-
     if (startIndex === -1 || endIndex === -1) {
         console.error("Markers $$SOE or $$EOE not found in NASA response");
         return null;
@@ -38,10 +29,10 @@ const parseNasaVectors = (planet, data) => {
     const dataSection = data.substring(startIndex + startMarker.length, endIndex);
 
     /**
-    * X\s*=\s* -> Look for 'X =' with any amount of whitespace
-    * ([-+]?[\d.E+]+) -> Capture group 1: numbers, decimals, signs, and scientific notation (E)
-    * Repeat for Y and Z
-    * 'g' flag -> Global search to find all coordinate sets
+    * X\s*=\s* -> look for 'X =' with any amount of whitespace
+    * ([-+]?[\d.E+]+) -> take group 1: numbers, decimals, signs, and scientific notation (E)
+    * the same for Y and Z
+    * 'g' flag -> global search to find all coordinate sets
     */
     const regex = /X\s*=\s*([-+]?[\d.E+]+)\s*Y\s*=\s*([-+]?[\d.E+]+)\s*Z\s*=\s*([-+]?[\d.E+]+)/g;
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Stars, Line, Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -40,6 +40,7 @@ function CameraTracker({ targetRef, targetName }) {
   const lastPosition = useRef(new THREE.Vector3());
 
   const isSmallScreen = size.width < 768;
+  const deltaRef = useRef(new THREE.Vector3());
 
   // move the camera at the same time as the planet moved
   useFrame(() => {
@@ -56,8 +57,7 @@ function CameraTracker({ targetRef, targetName }) {
       controlsRef.current.minDistance = radius * minBuffer;
 
       // calculate the displacement of the planet
-      const delta = new THREE.Vector3().subVectors(currentPosition, lastPosition.current);
-
+      const delta = deltaRef.current.subVectors(currentPosition, lastPosition.current);
       // apply that same displacement to the camera
       camera.position.add(delta);
 
@@ -229,7 +229,8 @@ const ArtemisScene = ({ focusTarget, trajectories }) => {
   const sunRef = useRef()
   const orionRef = useRef()
 
-  const [isPaused, setIsPaused] = useState(false);
+  const shouldRun = useStore((s) => s.shouldRun);
+  const advance = useStore((s) => s.advance);
 
   const curves = useMemo(() => {
     const format = (data) => data.map(p => new THREE.Vector3(p.x / 10000, p.z / 10000, -p.y / 10000));
@@ -247,11 +248,10 @@ const ArtemisScene = ({ focusTarget, trajectories }) => {
   if (focusTarget === 'Orion') activeRef = orionRef;
 
 
-  const advance = useStore((s) => s.advance);
 
   useFrame((state, delta) => {
     // delta -> time between frames provided by R3F
-    if (!isPaused) {
+    if (shouldRun) {
       advance(delta);
     }
   });
@@ -263,18 +263,40 @@ const ArtemisScene = ({ focusTarget, trajectories }) => {
       <Trajectory curve={curves.orion} color='red' />
       {/* trajectory for debugging to see if sun actually moves */}
       <Trajectory curve={curves.sun} color='purple' />
-      <Sun ref={sunRef} curve={curves.sun} isPaused={isPaused} setIsPaused={setIsPaused} />
-      <Earth ref={earthRef} curve={curves.earth} isPaused={isPaused} />
-      <Moon ref={moonRef} curve={curves.moon} isPaused={isPaused} setIsPaused={setIsPaused} />
-      <Orion ref={orionRef} curve={curves.orion} isPaused={isPaused} />
+      <Sun ref={sunRef} curve={curves.sun} />
+      <Earth ref={earthRef} curve={curves.earth}/>
+      <Moon ref={moonRef} curve={curves.moon}/>
+      <Orion ref={orionRef} curve={curves.orion}/>
       {activeRef && <CameraTracker targetRef={activeRef} targetName={focusTarget} />}
     </group>
   );
 };
 
+const LoadingButtonSpinner = () => {
+  const [frame, setFrame] = useState(0);
+  const frames = ['/', '—', '\\', '|'];
+
+  useEffect(() => {
+    // spin while loading, cycling through signs
+    const timer = setInterval(() => setFrame(f => (f + 1) % 4), 150);
+    return () => clearInterval(timer);
+  }, []);
+
+  return <span>[ {frames[frame]} ]</span>;
+};
+
 const FocusMenu = ({ focusTarget, setFocusTarget, centerOrigin, setCenterOrigin }) => {
   const targets = ['Earth', 'Moon', 'Orion', 'Sun'];
   const origins = ['Earth', 'Moon', 'Sun'];
+
+  const isOrbitLoading = useStore(s => s.isOrbitLoading);
+  const [pendingOrigin, setPendingOrigin] = useState(null);
+  // const setIsOrbitLoading = useStore((s) => s.setIsOrbitLoading);
+
+  const handleCenterChange = (name) => {
+    setPendingOrigin(name);
+    setCenterOrigin(name);
+  };
 
   return (
     <div className="flex flex-col gap-6 md:gap-8">
@@ -306,7 +328,10 @@ const FocusMenu = ({ focusTarget, setFocusTarget, centerOrigin, setCenterOrigin 
               <span className="relative z-10">
                 {focusTarget === name ? `> ${name}` : name}
               </span>
-              <div className={`absolute top-0 right-0 w-1 h-1 border-t border-r transition-opacity ${focusTarget === name ? 'border-blue-400 opacity-100' : 'border-white/20 opacity-0 group-hover:opacity-100'}`} />
+              {/* small corner detail */}
+              <div className={`
+                absolute top-0 right-0 w-1 h-1 border-t border-r transition-opacity 
+                ${focusTarget === name ? 'border-blue-400 opacity-100' : 'border-white/20 opacity-0 group-hover:opacity-100'}`} />
             </button>
           ))}
         </div>
@@ -322,27 +347,45 @@ const FocusMenu = ({ focusTarget, setFocusTarget, centerOrigin, setCenterOrigin 
         </div>
         {/* buttons group */}
         <div className="flex flex-row md:flex-col gap-2 md:px-0 overflow-x-auto custom-scrollbar">
-          {origins.map(name => (
-            <button
-              key={name}
-              data-testid={`center-${name}`}
-              onClick={() => setCenterOrigin(name)}
-              className={`
+          {origins.map(name => {
+            const isActive = centerOrigin === name;
+            const isWaiting = isOrbitLoading && pendingOrigin === name;
+            return (
+              <button
+                key={name}
+                data-testid={`center-${name}`}
+                disabled={isOrbitLoading}
+                onClick={() => handleCenterChange(name)}
+                className={`
                 flex-shrink-0 relative px-4 py-2 text-left transition-all duration-300 group
                 font-mono text-[9px] md:text-[11px] tracking-[0.2em] uppercase
                 border-b-2 md:border-b-0 md:border-l-2
-                ${centerOrigin === name
-                  ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
-                  : 'bg-black/40 border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-300'
-                }
+                ${isActive
+                    ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
+                    : 'bg-black/40 border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-300'
+                  }
+                ${isOrbitLoading ? 'cursor-wait' : 'hover:bg-blue-500/20 cursor-pointer'}
+                ${isOrbitLoading && !isWaiting ? 'opacity-30' : 'opacity-100'}
               `}
-            >
-              <span className="relative z-10">
-                {centerOrigin === name ? `[ ${name} ]` : name}
-              </span>
-              <div className={`absolute bottom-0 right-0 w-1 h-1 border-b border-r transition-opacity ${centerOrigin === name ? 'border-amber-500 opacity-100' : 'border-white/20 opacity-0 group-hover:opacity-100'}`} />
-            </button>
-          ))}
+              >
+                <span className="relative z-10 flex items-center justify-between">
+                  {isWaiting ? (
+                    <span className="text-amber-400">
+                      <LoadingButtonSpinner />
+                    </span>
+                  ) : (
+                    <span>{isActive ? `[ ${name} ]` : name}</span>
+                  )}
+                </span>
+                {/* small corner detail */}
+                <div className={`
+                  absolute w-1 h-1 top-0 right-0 border-t border-r transition-opacity
+                  md:top-auto md:bottom-0 md:border-t-0 md:border-b md:border-r  
+                  ${isActive ? 'border-amber-500 opacity-100' : 'border-white/20 opacity-0 group-hover:opacity-100'}
+                `} />
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -520,6 +563,7 @@ const SearchBar = () => {
       <div className="flex bg-slate-900/90 backdrop-blur-md border border-blue-500/30 rounded-sm px-3 py-2 hover:border-blue-400 transition-all">
         <input
           type="text"
+          data-testid="search-input"
           placeholder="SEARCH ARCHIVE..."
           value={localInput}
           onChange={(e) => setLocalInput(e.target.value)}
@@ -544,6 +588,7 @@ const SearchGallery = ({ allImages }) => {
 
   const results = useMemo(() => {
     if (!globalQuery) return [];
+    if (!Array.isArray(allImages)) return [];
     const term = globalQuery.toLowerCase();
 
     // search the archive fetched on load
@@ -595,6 +640,8 @@ export default function App() {
 
   const [fullArchive, setFullArchive] = useState([]);
 
+  const setIsOrbitLoading = useStore(s => s.setIsOrbitLoading);
+
   useEffect(() => {
     if (isGalleryOpen || isSearchOpen) {
       setShouldRun(false);
@@ -604,36 +651,39 @@ export default function App() {
   useEffect(() => {
     const fetchMissionData = async () => {
       try {
-        const trajectoryKeys = ['artemis', 'moon', 'earth', 'sun'];
-        const origin = centerOrigin.toLowerCase();
-        const requests = [
-          axios.get(`${BACKEND_URL}/api/mission/trajectory`),
-          axios.get(`${BACKEND_URL}/api/mission/archive`),
-          ...trajectoryKeys.map(obj => axios.get(`${BACKEND_URL}/api/trajectory/${obj}/${origin}`))
-        ];
-
-        const responses = await Promise.all(requests);
-
-        const [missionRes, archiveRes, orionRes, moonRes, earthRes, sunRes] = responses;
+        setIsOrbitLoading(true);
+        // fetch mission data and archive 
+        const [missionRes, archiveRes] = await Promise.all([
+          axios.get(`${BACKEND_URL}/api/mission/data`),
+          axios.get(`${BACKEND_URL}/api/mission/archive`)
+        ]);
 
         setFullArchive(archiveRes.data);
         setMilestones(missionRes.data.milestones);
-        setTrajectories({
-          orion: orionRes.data,
-          moon: moonRes.data,
-          earth: earthRes.data,
-          sun: sunRes.data
-        });
 
+        // fetch trajectories with a tiny stagger or sequentially
+        const trajectoryKeys = ['artemis', 'moon', 'earth', 'sun'];
+        const origin = centerOrigin.toLowerCase();
+        const newTrajectories = {};
+
+        for (const obj of trajectoryKeys) {
+          const res = await axios.get(`${BACKEND_URL}/api/trajectory/${obj}/${origin}`);
+          // map artemis to orion
+          const stateKey = obj === 'artemis' ? 'orion' : obj;
+          newTrajectories[stateKey] = res.data;
+        }
+
+        setTrajectories(newTrajectories);
         setIsDataLoaded(true);
-
       } catch (err) {
         console.error("Data Load Fail:", err);
+      } finally {
+        setIsOrbitLoading(false);
       }
     };
 
     fetchMissionData();
-  }, [centerOrigin]);
+  }, [centerOrigin, setIsOrbitLoading]);
 
   useEffect(() => {
     // if data isn't loaded after 10 seconds=> timeout state
@@ -738,7 +788,7 @@ export default function App() {
               />
             </div>
 
-            
+
           </div>
           <MissionControl milestones={milestones} />
           <Timeline milestones={milestones} onTimelineClick={handleTimelineClick} />

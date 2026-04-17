@@ -1,10 +1,13 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../src/App';
 import axios from 'axios';
 import { beforeEach, describe, it, vi, expect } from 'vitest';
+import { useStore } from '../src/store';
+import userEvent from '@testing-library/user-event';
 
 // mock axios
 vi.mock('axios');
+
 
 axios.get.mockImplementation((url) => {
 
@@ -18,7 +21,7 @@ axios.get.mockImplementation((url) => {
         }
     };
 
-    if (url.includes('/api/mission/trajectory')) {
+    if (url.includes('/api/mission/data')) {
         return Promise.resolve({
             data: { milestones: [{ day: 1, label: 'Launch' }, { day: 6, label: 'The Big Day' }] }
         });
@@ -34,11 +37,20 @@ axios.get.mockImplementation((url) => {
         });
     }
 
+    if (url.includes('/api/mission/archive')) {
+        return Promise.resolve({ data: [] });
+    }
+
     // fallback to prevent undefined crashes
     return Promise.resolve({ baseResponse });
 });
 beforeEach(() => {
     vi.clearAllMocks();
+    useStore.setState({
+        globalSearchQuery: "",
+        isSearchOpen: false,
+        isGalleryOpen: false
+    });
 });
 
 describe('Frontend UI Tests', () => {
@@ -66,7 +78,9 @@ describe('Frontend UI Tests', () => {
         const sunBtn = await screen.findByTestId('center-Sun');
 
         fireEvent.click(sunBtn);
-        expect(sunBtn).toHaveTextContent('[ Sun ]');
+        await waitFor(() => {
+            expect(sunBtn).toHaveTextContent('[ Sun ]');
+        });
 
     });
 
@@ -81,6 +95,26 @@ describe('Frontend UI Tests', () => {
         const photoTitle = await screen.findByText(/Science Officers/i);
         expect(photoTitle).toBeInTheDocument();
 
+    });
+
+    it('updates global search query when Enter is pressed', async () => {
+        // mock API 
+        axios.get.mockResolvedValue({ data: { milestones: [] } });
+
+        const user = userEvent.setup();
+        render(<App />);
+
+        const input = await screen.findByTestId('search-input');
+
+        // 3. Type and Enter
+        await user.type(input, 'Artemis{enter}');
+
+        // verify if store updated
+        await waitFor(() => {
+            const state = useStore.getState();
+            expect(state.globalSearchQuery).toBe('Artemis');
+            expect(state.isSearchOpen).toBe(true);
+        }, { timeout: 2000 });
     });
 
 });

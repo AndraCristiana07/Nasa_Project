@@ -18,7 +18,7 @@ app.use(missionDayRouter);
 
 app.get('/api/mission/archive', getArchive);
 
-app.get('/api/mission/trajectory', (req, res) => {
+app.get('/api/mission/data', (req, res) => {
     res.json(data);
 });
 
