@@ -1,8 +1,8 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import App from '../src/App';
 import axios from 'axios';
-import { beforeEach, describe, it, vi } from 'vitest';
-import { useStore } from '../src/store';
+import { beforeEach, describe, it, vi, expect } from 'vitest';
+
 // mock axios
 vi.mock('axios');
 
@@ -53,14 +53,24 @@ describe('Frontend UI Tests', () => {
     it('switching to Sun View changes the UI', async () => {
         render(<App />);
 
-        const sunBtn = await screen.findByText(/Sun/i);
+        const sunBtn = await screen.findByTestId('focus-Sun');
 
         fireEvent.click(sunBtn);
+        expect(sunBtn).toHaveTextContent('> Sun');
+
+    });
+
+    it('switching to Sun center changes the UI', async () => {
+        render(<App />);
+
+        const sunBtn = await screen.findByTestId('center-Sun');
+
+        fireEvent.click(sunBtn);
+        expect(sunBtn).toHaveTextContent('[ Sun ]');
 
     });
 
     it('clicking a timeline day opens gallery', async () => {
-
         render(<App />);
 
         const day6Btn = await screen.findByText(/Day 06/i);

@@ -75,18 +75,24 @@ const getBaseParams = (command, center) => ({
   OUT_UNITS: "'KM-S'"
 });
 
-router.get('/api/trajectory/:obj', async (req, res) => {
-  if (cache[req.params.obj]) return res.json(cache[req.params.obj]); // check cache first
+router.get('/api/trajectory/:obj/:center', async (req, res) => {
+  const cache_key = `${req.params.obj}-${req.params.center}`
+  if (cache[cache_key]) {
+    console.log(`${cache_key} using cache`)
+    return res.json(cache[cache_key]); // check cache
+  }
   try {
-    const params = getBaseParams(objs[req.params.obj], '@sun');
+
+    console.log(req.params)
+
+    const params = getBaseParams(objs[req.params.obj], objs[req.params.center]);
     params.STEP_SIZE = "'1h'";
     const response = await axios.get('https://ssd.jpl.nasa.gov/api/horizons.api', { params });
     const coords = parseNasaVectors(req.params.obj, response.data);
-    cache[req.params.obj] = coords; // save to cache
+    cache[cache_key] = coords; // save to cache
     res.json(coords);
   } catch (err) {
     res.status(500).send(err.message);
   }
 });
-
 module.exports = { router: router, data: cache }

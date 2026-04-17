@@ -108,14 +108,16 @@ function CameraTracker({ targetRef, targetName }) {
 
       lastPosition.current.copy(targetPos);
     }
-  }, [targetName, isSmallScreen]);
+  }, [targetName, isSmallScreen, camera, targetRef]);
+
   return (
     <><OrbitControls
       ref={controlsRef}
       enablePan={false}
       makeDefault
-      dampingFactor={0.05} // maybe
-      maxDistance={10000000} />
+      dampingFactor={0.05} 
+      maxDistance={10000000} 
+      />
 
       <EffectComposer>
         <Bloom
@@ -131,7 +133,6 @@ const MissionControl = ({ milestones }) => {
   const { progress, setProgress, shouldRun, setShouldRun } = useStore();
 
   const [wasPlaying, setWasPlaying] = useState(false);
-
   const totalDays = 10;
 
   const togglePlayback = () => setShouldRun(!shouldRun);
@@ -139,7 +140,6 @@ const MissionControl = ({ milestones }) => {
   return (
     <div className="fixed bottom-0 md:bottom-5 left-0 md:left-1/2 md:-translate-x-1/2 z-[100] w-full md:w-[600px] md:max-w-[90vw] ">
       <div className="bg-slate-900/95 backdrop-blur-xl border-t md:border border-blue-500/30 p-4 md:p-5 md:rounded-2xl shadow-2xl flex flex-col gap-3 md:gap-4">
-
         {/* progress */}
         <div className="flex justify-between items-end font-mono text-[9px] md:text-[10px] tracking-widest px-1">
           <div className="flex flex-col">
@@ -173,7 +173,6 @@ const MissionControl = ({ milestones }) => {
 
           {/* seek container */}
           <div className="relative flex-1 group py-3 md:py-4">
-
             {/* day markers */}
             <div className="absolute inset-0 left-0 right-0 pointer-events-none">
               {milestones?.map((m) => {
@@ -187,7 +186,6 @@ const MissionControl = ({ milestones }) => {
                   >
                     {/* tick mark for days*/}
                     <div className="w-[1px] h-2 md:h-3 bg-blue-400/30 group-hover:bg-blue-400/60 transition-colors" />
-
                     {/* day label */}
                     <span className="absolute bottom-[-4px] text-[9px] font-mono text-slate-500 group-hover:text-blue-300 transition-colors">
                       D{m.day}
@@ -225,7 +223,7 @@ const MissionControl = ({ milestones }) => {
   );
 };
 
-const ArtemisScene = ({ focusTarget, milestones, trajectories }) => {
+const ArtemisScene = ({ focusTarget, trajectories }) => {
   const earthRef = useRef()
   const moonRef = useRef()
   const sunRef = useRef()
@@ -259,69 +257,97 @@ const ArtemisScene = ({ focusTarget, milestones, trajectories }) => {
   });
 
   return (
-    <>
       <group>
         <Trajectory curve={curves.earth} color='blue' />
         <Trajectory curve={curves.moon} color='yellow' />
         <Trajectory curve={curves.orion} color='red' />
+        {/* trajectory for debugging to see if sun actually moves */}
+        <Trajectory curve={curves.sun} color='purple' /> 
         <Sun ref={sunRef} curve={curves.sun} isPaused={isPaused} setIsPaused={setIsPaused} />
         <Earth ref={earthRef} curve={curves.earth} isPaused={isPaused} />
         <Moon ref={moonRef} curve={curves.moon} isPaused={isPaused} setIsPaused={setIsPaused} />
         <Orion ref={orionRef} curve={curves.orion} isPaused={isPaused} />
         {activeRef && <CameraTracker targetRef={activeRef} targetName={focusTarget} />}
       </group>
-
-    </>
   );
 };
 
-const FocusMenu = ({ focusTarget, setFocusTarget }) => {
+const FocusMenu = ({ focusTarget, setFocusTarget, centerOrigin, setCenterOrigin }) => {
   const targets = ['Earth', 'Moon', 'Orion', 'Sun'];
+  const origins = ['Earth', 'Moon', 'Sun']; 
+
   return (
-    <div>
-      {/* UI to change focus */}
-      <div className="absolute top-4 left-1 md:top-8 md:left-8 z-10 flex flex-col gap-3">
-        {/* header */}
+    <div className="absolute top-4 left-1 md:top-8 md:left-8 z-50 flex flex-col gap-8">
+      {/* camera focus */}
+      <div className="flex flex-col gap-3">
         <div className="hidden md:block mb-2 px-1">
-          <h2 data-testid="focus-target-header" className="text-blue-500 font-mono text-[12px] tracking-[0.3em] uppercase opacity-70">
-            Focus Target
+          <h2 className="text-blue-500 font-mono text-[11px] tracking-[0.3em] uppercase opacity-70">
+            Focus target
           </h2>
-          <div className="h-[1px] w-full bg-blue-500/50 my-1" />
+          <div className="h-[1px] w-full bg-blue-500/30 my-1" />
         </div>
+        {/* buttons group */}
         <div className="flex flex-row md:flex-col gap-2 px-4 md:px-0 overflow-x-auto no-scrollbar">
           {targets.map(name => (
             <button
-              data-testid={`focus-btn-${name.toLowerCase()}`}
               key={name}
               onClick={() => setFocusTarget(name)}
+              data-testid={`focus-${name}`}
               className={`
-                  flex-shrink-0 relative px-4 py-2 text-left transition-all duration-300 group
-                  font-mono text-[10px] md:text-[12px] tracking-[0.2em] uppercase
-                  border-b-2 md:border-b-0 md:border-l-2
-                  ${focusTarget === name
-                  ? 'bg-blue-500/20 border-blue-400 text-blue-400 shadow-[0_0_15px_rgba(96,165,250,0.2)]'
+                flex-shrink-0 relative px-4 py-2 text-left transition-all duration-300 group
+                font-mono text-[10px] md:text-[12px] tracking-[0.2em] uppercase
+                border-b-2 md:border-b-0 md:border-l-2
+                ${focusTarget === name
+                  ? 'bg-blue-500/20 border-blue-400 text-blue-400 shadow-[0_0_15px_rgba(96,165,250,0.1)]'
                   : 'bg-black/40 border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-300'
                 }
-                `}
+              `}
             >
-              {focusTarget === name && (
-                <div className="absolute inset-0 to-transparent animate-pulse" />
-              )}
-
-              {/* ">" to show focus */}
               <span className="relative z-10">
                 {focusTarget === name ? `> ${name}` : name}
               </span>
-
-              {/* small corner detail */}
               <div className={`absolute top-0 right-0 w-1 h-1 border-t border-r transition-opacity ${focusTarget === name ? 'border-blue-400 opacity-100' : 'border-white/20 opacity-0 group-hover:opacity-100'}`} />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* set center */}
+      <div className="flex flex-col gap-3">
+        <div className="hidden md:block mb-2 px-1">
+          <h2 className="text-amber-500 font-mono text-[11px] tracking-[0.3em] uppercase opacity-70">
+            Reference frame (center)
+          </h2>
+          <div className="h-[1px] w-full bg-amber-500/30 my-1" />
+        </div>
+        {/* buttons group */}
+        <div className="flex flex-row md:flex-col gap-2 px-4 md:px-0 overflow-x-auto no-scrollbar">
+          {origins.map(name => (
+            <button
+              key={name}
+              data-testid={`center-${name}`}
+              onClick={() => setCenterOrigin(name)}
+              className={`
+                flex-shrink-0 relative px-4 py-2 text-left transition-all duration-300 group
+                font-mono text-[9px] md:text-[11px] tracking-[0.2em] uppercase
+                border-b-2 md:border-b-0 md:border-l-2
+                ${centerOrigin === name
+                  ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
+                  : 'bg-black/40 border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-300'
+                }
+              `}
+            >
+              <span className="relative z-10">
+                {centerOrigin === name ? `[ ${name} ]` : name}
+              </span>
+              <div className={`absolute bottom-0 right-0 w-1 h-1 border-b border-r transition-opacity ${centerOrigin === name ? 'border-amber-500 opacity-100' : 'border-white/20 opacity-0 group-hover:opacity-100'}`} />
             </button>
           ))}
         </div>
       </div>
     </div>
   );
-}
+};
 
 const Timeline = ({ milestones, onTimelineClick }) => {
 
@@ -466,14 +492,16 @@ export default function App() {
   const [isLoadingGallery, setIsLoadingGallery] = useState(false);
 
   const isGalleryOpen = useStore((s) => s.isGalleryOpen);
+
+  const [centerOrigin, setCenterOrigin] = useState('Earth'); 
   useEffect(() => {
     const fetchMissionData = async () => {
       try {
         const trajectoryKeys = ['artemis', 'moon', 'earth', 'sun'];
-
+        const origin = centerOrigin.toLowerCase();
         const requests = [
           axios.get(`${BACKEND_URL}/api/mission/trajectory`),
-          ...trajectoryKeys.map(key => axios.get(`${BACKEND_URL}/api/trajectory/${key}`))
+          ...trajectoryKeys.map(obj => axios.get(`${BACKEND_URL}/api/trajectory/${obj}/${origin}`))
         ];
 
         const responses = await Promise.all(requests);
@@ -496,7 +524,7 @@ export default function App() {
     };
 
     fetchMissionData();
-  }, []);
+  }, [centerOrigin]);
 
   useEffect(() => {
     // if data isn't loaded after 10 seconds=> timeout state
@@ -538,7 +566,7 @@ export default function App() {
       {!isDataLoaded && (
         <div className="fixed inset-0 z-[500] bg-black flex flex-col items-center justify-center p-6 text-center">
           {!hasLoadingTimeout ? (
-            /* loading state */
+            // loading state 
             <>
               <div className="w-64 h-[2px] bg-blue-900/30 overflow-hidden relative">
                 <div className="absolute inset-0 bg-blue-500 animate-loading-bar" />
@@ -548,7 +576,7 @@ export default function App() {
               </p>
             </>
           ) : (
-            /* timeout state */
+            // timeout state 
             <div className="flex flex-col items-center animate-in fade-in duration-700">
               <div className="text-red-500 text-4xl mb-4">🛰️</div>
               <h2 className="text-white font-mono text-sm font-bold tracking-widest uppercase mb-2">
@@ -588,7 +616,7 @@ export default function App() {
 
       {isDataLoaded && !isGalleryOpen && (
         <>
-          <FocusMenu focusTarget={focusTarget} setFocusTarget={setFocusTarget} />
+          <FocusMenu focusTarget={focusTarget} setFocusTarget={setFocusTarget} centerOrigin={centerOrigin} setCenterOrigin={setCenterOrigin} />
           <MissionControl milestones={milestones} />
           <Timeline milestones={milestones} onTimelineClick={handleTimelineClick} />
 

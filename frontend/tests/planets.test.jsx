@@ -1,10 +1,9 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { Sun, Moon, Orion, Earth, FlareMarker } from '../src/planets';
+import { render, screen, waitFor } from '@testing-library/react';
+import { Sun, FlareMarker } from '../src/planets';
 import axios from 'axios';
 import * as THREE from 'three';
-import { beforeEach, describe, it, vi } from 'vitest';
+import { beforeEach, describe, it, vi, expect } from 'vitest';
 import { useStore } from '../src/store';
-import { useFrame } from '@react-three/fiber';
 
 // mock axios
 vi.mock('axios');
@@ -79,7 +78,6 @@ describe('Sun Component API', () => {
 
         expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('/api/solar-flares'));
 
-
         await waitFor(() => {
             expect(axios.get).toHaveBeenCalledTimes(1);
         });
@@ -106,10 +104,8 @@ describe('Sun Component API', () => {
             current: { position: new THREE.Vector3(0, 0, 0) }
         };
 
-        const { container } = render(
-            <FlareMarker flare={sampleFlare} sunRef={mockSunRef} />
-        );
-
+        render(<FlareMarker flare={sampleFlare} sunRef={mockSunRef} />);
+        
         // find halo mesh
         const haloMesh = screen.getByTestId('flare-halo');
 
@@ -121,7 +117,7 @@ describe('Sun Component API', () => {
             stopPropagation: vi.fn(),
             distance: 10,
             camera: {
-                position: new THREE.Vector3(0, 0, 100) // Sun is 100 units away
+                position: new THREE.Vector3(0, 0, 100) // Sun 100 units away
             }
         });
         // paused

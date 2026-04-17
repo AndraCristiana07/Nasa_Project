@@ -1,4 +1,5 @@
 import { convertCoords } from '../src/planets';
+import { describe, it, expect } from 'vitest';
 
 describe('Math Utilities', () => {
   it('converts lat/lng to 3D vectors correctly', () => {

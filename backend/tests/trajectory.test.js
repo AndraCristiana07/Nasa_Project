@@ -21,11 +21,11 @@ describe('Trajectory Route Handler', () => {
         // clear the cache
         for (const key in cache) delete cache[key];
 
-        handler = getHandler('/api/trajectory/:obj');
+        handler = getHandler('/api/trajectory/:obj/:center');
 
         // mock Request and Response
         mockReq = {
-            params: { obj: 'earth' }
+            params: { obj: 'moon', center: 'earth' }
         };
 
         mockRes = {
@@ -46,7 +46,7 @@ describe('Trajectory Route Handler', () => {
         ]);
 
         // verify cache was populated
-        expect(cache['earth']).toBeDefined();
+        expect(cache['moon-earth']).toBeDefined();
     });
 
     it('returns 500 status when axios fails', async () => {
@@ -60,7 +60,7 @@ describe('Trajectory Route Handler', () => {
 
     it('uses the cache and does not call axios again', async () => {
         // manually populate cache 
-        cache['earth'] = [{ x: 1, y: 1, z: 1 }];
+        cache['moon-earth'] = [{ x: 1, y: 1, z: 1 }];
 
         await handler(mockReq, mockRes);
 

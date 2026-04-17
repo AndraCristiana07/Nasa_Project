@@ -4,6 +4,7 @@ import { useTexture, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import sunColor from './assets/2k_sun.jpg'
 import { useStore } from './store';
+import { convertCoords } from './utils/solarConverter'
 import axios from 'axios';
 import { useGLTF } from '@react-three/drei';
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
@@ -89,20 +90,6 @@ const MOCK_FLARES = [
     "color": "#f98029"
   }
 ]
-const convertCoords = (lat, lng, radius) => {
-  // convert to 3D Vector
-  const latRad = (90 - lat) * (Math.PI / 180)
-  const lngRad = (lng + 180) * (Math.PI / 180)
-  // x = r * cos(lat) * cos(lng)
-  // y = r * sin(lat)
-  // z = r * cos(lat) * sin(lng)
-  return new THREE.Vector3(
-    -radius * Math.sin(latRad) * Math.cos(lngRad),
-    radius * Math.cos(latRad),
-    radius * Math.sin(latRad) * Math.sin(lngRad)
-  )
-}
-
 
 // --- EARTH ---
 const Earth = forwardRef(({ curve }, ref) => {
@@ -400,4 +387,4 @@ const Sun = forwardRef(({ curve }, ref) => {
     </group>
   );
 });
-export { Moon, Earth, Orion, Sun, FlareMarker, convertCoords };
+export { Moon, Earth, Orion, Sun, FlareMarker };
