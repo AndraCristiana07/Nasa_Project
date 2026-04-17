@@ -116,7 +116,7 @@ function CameraTracker({ targetRef, targetName }) {
       enablePan={false}
       makeDefault
       dampingFactor={0.05} 
-      maxDistance={10000000} 
+      maxDistance={1000000} 
       />
 
       <EffectComposer>

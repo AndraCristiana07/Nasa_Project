@@ -1,4 +1,4 @@
-import { convertCoords } from '../src/planets';
+import { convertCoords } from '../src/utils/solarConverter';
 import { describe, it, expect } from 'vitest';
 
 describe('Math Utilities', () => {

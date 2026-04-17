@@ -13,8 +13,9 @@ jobs:
     defaults:
       run:
         working-directory: ./frontend
+        
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js

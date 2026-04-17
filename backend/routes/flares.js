@@ -51,7 +51,7 @@ router.get('/api/solar-flares', async (req, res) => {
 
         res.json(flares);
     } catch (error) {
-        res.status(500).json({ error: "Failed to fetch solar data" });
+        res.status(500).json({ error: `Failed to fetch solar data: ${error}` });
     }
 });
 
