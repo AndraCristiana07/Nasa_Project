@@ -115,9 +115,9 @@ function CameraTracker({ targetRef, targetName }) {
       ref={controlsRef}
       enablePan={false}
       makeDefault
-      dampingFactor={0.05} 
-      maxDistance={1000000} 
-      />
+      dampingFactor={0.05}
+      maxDistance={1000000}
+    />
 
       <EffectComposer>
         <Bloom
@@ -257,27 +257,27 @@ const ArtemisScene = ({ focusTarget, trajectories }) => {
   });
 
   return (
-      <group>
-        <Trajectory curve={curves.earth} color='blue' />
-        <Trajectory curve={curves.moon} color='yellow' />
-        <Trajectory curve={curves.orion} color='red' />
-        {/* trajectory for debugging to see if sun actually moves */}
-        <Trajectory curve={curves.sun} color='purple' /> 
-        <Sun ref={sunRef} curve={curves.sun} isPaused={isPaused} setIsPaused={setIsPaused} />
-        <Earth ref={earthRef} curve={curves.earth} isPaused={isPaused} />
-        <Moon ref={moonRef} curve={curves.moon} isPaused={isPaused} setIsPaused={setIsPaused} />
-        <Orion ref={orionRef} curve={curves.orion} isPaused={isPaused} />
-        {activeRef && <CameraTracker targetRef={activeRef} targetName={focusTarget} />}
-      </group>
+    <group>
+      <Trajectory curve={curves.earth} color='blue' />
+      <Trajectory curve={curves.moon} color='yellow' />
+      <Trajectory curve={curves.orion} color='red' />
+      {/* trajectory for debugging to see if sun actually moves */}
+      <Trajectory curve={curves.sun} color='purple' />
+      <Sun ref={sunRef} curve={curves.sun} isPaused={isPaused} setIsPaused={setIsPaused} />
+      <Earth ref={earthRef} curve={curves.earth} isPaused={isPaused} />
+      <Moon ref={moonRef} curve={curves.moon} isPaused={isPaused} setIsPaused={setIsPaused} />
+      <Orion ref={orionRef} curve={curves.orion} isPaused={isPaused} />
+      {activeRef && <CameraTracker targetRef={activeRef} targetName={focusTarget} />}
+    </group>
   );
 };
 
 const FocusMenu = ({ focusTarget, setFocusTarget, centerOrigin, setCenterOrigin }) => {
   const targets = ['Earth', 'Moon', 'Orion', 'Sun'];
-  const origins = ['Earth', 'Moon', 'Sun']; 
+  const origins = ['Earth', 'Moon', 'Sun'];
 
   return (
-    <div className="absolute top-4 left-1 md:top-8 md:left-8 z-50 flex flex-col gap-8">
+    <div className="flex flex-col gap-6 md:gap-8">
       {/* camera focus */}
       <div className="flex flex-col gap-3">
         <div className="hidden md:block mb-2 px-1">
@@ -287,7 +287,7 @@ const FocusMenu = ({ focusTarget, setFocusTarget, centerOrigin, setCenterOrigin 
           <div className="h-[1px] w-full bg-blue-500/30 my-1" />
         </div>
         {/* buttons group */}
-        <div className="flex flex-row md:flex-col gap-2 px-4 md:px-0 overflow-x-auto no-scrollbar">
+        <div className="flex flex-row md:flex-col gap-2 md:px-0 overflow-x-auto custom-scrollbar">
           {targets.map(name => (
             <button
               key={name}
@@ -321,7 +321,7 @@ const FocusMenu = ({ focusTarget, setFocusTarget, centerOrigin, setCenterOrigin 
           <div className="h-[1px] w-full bg-amber-500/30 my-1" />
         </div>
         {/* buttons group */}
-        <div className="flex flex-row md:flex-col gap-2 px-4 md:px-0 overflow-x-auto no-scrollbar">
+        <div className="flex flex-row md:flex-col gap-2 md:px-0 overflow-x-auto custom-scrollbar">
           {origins.map(name => (
             <button
               key={name}
@@ -394,84 +394,180 @@ const Timeline = ({ milestones, onTimelineClick }) => {
   );
 };
 
-const Gallery = ({ galleryData, onClose, isOpen, isLoadingGallery, selectedDay }) => {
+const Modal = ({ isOpen, onClose, title, isLoading, children, isEmpty, emptyMessage }) => {
   if (!isOpen) return null;
-  const dayDisplay = galleryData?.day || selectedDay || "??";
 
   return (
     <div className="fixed inset-0 z-[150] flex justify-end pointer-events-none">
-      <div className="absolute border border-blue-500/40 inset-0 pointer-events-auto"
-        onClick={onClose} />
+      <div
+        className="absolute border border-blue-500/40 inset-0 pointer-events-auto"
+        onClick={onClose}
+      />
 
       <div className="
-            w-full md:max-w-[450px] 
-            h-full md:h-screen
-            bg-slate-950/95 
-            backdrop-blur-2xl 
-            border-l border-blue-500/30 
-            shadow-[-20px_0_60px_rgba(0,0,0,0.8)]
-            pointer-events-auto 
-            flex flex-col 
-            animate-slide-in-bottom md:animate-slide-in-right duration-500 animate-ease-out
-          ">
+          w-full md:max-w-[450px] 
+          h-full md:h-screen
+          bg-slate-950/95 
+          backdrop-blur-2xl 
+          border-l border-blue-500/30 
+          shadow-[-20px_0_60px_rgba(0,0,0,0.8)]
+          pointer-events-auto 
+          flex flex-col 
+          animate-slide-in-bottom md:animate-slide-in-right duration-500 animate-ease-out
+        ">
         {/* header */}
         <div className="p-4 md:p-6 border-b border-white/10 flex justify-between items-center">
           <h2 className="text-blue-400 font-bold text-lg md:text-xl uppercase">
-            {galleryData?.label || `Mission Day ${dayDisplay} Status`}
+            {title}
           </h2>
           <button
-            onClick={() => {
-              onClose();
-            }}
+            onClick={onClose}
             className="text-white hover:text-red-500 text-2xl transition-colors"
           >✕</button>
         </div>
 
         {/* content */}
         <div className="overflow-y-auto snap-y snap-mandatory p-4 md:p-8 min-h-[400px] custom-scrollbar flex-1 p-8 flex flex-col">
-          {isLoadingGallery ? (
+          {isLoading ? (
             /* loading state */
-            <div className="flex-1 flex flex-col items-center justify-center text-center ">
+            <div className="flex-1 flex flex-col items-center justify-center text-center">
               <div className="relative w-20 h-20 mb-8">
                 {/* spinning outer ring */}
                 <div className="absolute inset-0 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
                 {/* pulsing inner dot */}
                 <div className="absolute inset-4 bg-blue-500/40 rounded-full animate-pulse"></div>
               </div>
-              <p className="text-blue-400 font-mono text-xs tracking-[0.3em] animate-pulse">
-                RECEIVING DATA...
-              </p>
+              <p className="text-blue-400 font-mono text-xs tracking-[0.3em] animate-pulse">RECEIVING DATA...</p>
             </div>
-
-          ) : galleryData && Array.isArray(galleryData.gallery) && galleryData.gallery.length > 0 ? (
-            /* loaded data */
-            galleryData.gallery.map((img, i) => (
-              <div key={i} className="mb-8 md:mb-10 last:mb-0 group">
-                <div className="relative overflow-hidden rounded-lg md:rounded-xl mb-3 border border-white/10">
-                  <img
-                    src={img.url}
-                    onLoad={(e) => e.currentTarget.classList.add('opacity-100')}
-                    className="w-full h-auto transform transition-transform duration-1000 hover:scale-115"
-                  />
-                </div>
-                <p className="text-white text-sm md:text-md font-bold">{img.title}</p>
-                <p className="text-slate-400 text-xs md:text-sm italic leading-relaxed">{img.description}</p>
-              </div>
-            ))
-
-          ) : (
-            /* no data for day */
+          ) : isEmpty ? (
+            /* no data */
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <span className="text-4xl mb-4">📡</span>
               <h3 className="text-white font-bold mb-2 uppercase tracking-widest">No Visual Data</h3>
-              <p className="text-slate-500 text-sm max-w-[280px]">
-                Day {dayDisplay} contains no images.
-              </p>
+              <p className="text-slate-500 text-sm max-w-[280px]">{emptyMessage}</p>
             </div>
+          ) : (
+            /* loaded data */
+            children
           )}
         </div>
       </div>
     </div>
+  );
+};
+
+const ImageCard = ({ img }) => {
+  return (
+    <div className="mb-8 md:mb-10 last:mb-0 group animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* image container */}
+      <div className="relative overflow-hidden rounded-lg md:rounded-xl mb-3 border border-white/10 bg-white/5">
+        <img
+          src={img.url}
+          alt={img.title}
+          loading="lazy"
+          onLoad={(e) => e.currentTarget.classList.add('opacity-100')}
+          className="w-full h-auto opacity-0 transition-all duration-1000 ease-out transform group-hover:scale-110 grayscale-[20%] group-hover:grayscale-0"
+        />
+      </div>
+
+      {/* text content */}
+      <div className="px-1">
+        <h3 className="text-white text-sm md:text-md font-bold uppercase tracking-wider group-hover:text-blue-400 transition-colors">
+          {img.title}
+        </h3>
+        <p className="text-slate-400 text-[11px] md:text-xs italic leading-relaxed mt-1 line-clamp-3">
+          {img.description}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+const Gallery = ({ galleryData, onClose, isOpen, isLoadingGallery, selectedDay }) => {
+  if (!isOpen) return null;
+  const dayDisplay = galleryData?.day || selectedDay || "??";
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={galleryData?.label || `Mission Day ${dayDisplay}`}
+      isLoading={isLoadingGallery}
+      isEmpty={!galleryData?.gallery?.length}
+      emptyMessage={`No visual telemetry for Day ${dayDisplay}.`}
+    >
+      {galleryData?.gallery?.map((img, i) => (
+        <ImageCard key={i} img={img} />
+      ))}
+    </Modal>
+  );
+};
+
+const SearchBar = () => {
+  const [localInput, setLocalInput] = useState("");
+  const setIsSearchOpen = useStore((s) => s.setIsSearchOpen);
+
+  const handleTriggerSearch = () => {
+    if (!localInput.trim()) return;
+
+    useStore.setState({ globalSearchQuery: localInput });
+    setIsSearchOpen(true);
+    setLocalInput("");
+  };
+
+  return (
+    <div className="flex items-center pointer-events-auto">
+      <div className="flex bg-slate-900/90 backdrop-blur-md border border-blue-500/30 rounded-sm px-3 py-2 hover:border-blue-400 transition-all">
+        <input
+          type="text"
+          placeholder="SEARCH ARCHIVE..."
+          value={localInput}
+          onChange={(e) => setLocalInput(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleTriggerSearch()}
+          className="bg-transparent outline-none text-[10px] md:text-xs font-mono tracking-[0.2em] text-blue-400 w-32 md:w-40 xl:w-48 placeholder:text-blue-900/60"
+        />
+        <button
+          onClick={handleTriggerSearch}
+          className="ml-2 text-blue-500 hover:text-white transition-colors"
+        >
+          🔍
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const SearchGallery = ({ allImages }) => {
+  const isSearchOpen = useStore((s) => s.isSearchOpen);
+  const setIsSearchOpen = useStore((s) => s.setIsSearchOpen);
+  const globalQuery = useStore((s) => s.globalSearchQuery);
+
+  const results = useMemo(() => {
+    if (!globalQuery) return [];
+    const term = globalQuery.toLowerCase();
+
+    // search the archive fetched on load
+    return allImages.filter(img =>
+      img.title?.toLowerCase().includes(term) ||
+      img.description?.toLowerCase().includes(term) ||
+      img.keywords?.some(k => k.toLowerCase().includes(term))
+    );
+  }, [globalQuery, allImages]);
+
+  return (
+    <Modal
+      isOpen={isSearchOpen}
+      onClose={() => setIsSearchOpen(false)}
+      title={`Search: ${globalQuery}`}
+      isEmpty={results.length === 0}
+      emptyMessage={`No mission data found for "${globalQuery}"`}
+    >
+      <div className="flex flex-col gap-2">
+        {results.map((img, i) => (
+          <ImageCard key={i} img={img} />
+        ))}
+      </div>
+    </Modal>
   );
 };
 
@@ -493,7 +589,18 @@ export default function App() {
 
   const isGalleryOpen = useStore((s) => s.isGalleryOpen);
 
-  const [centerOrigin, setCenterOrigin] = useState('Earth'); 
+  const [centerOrigin, setCenterOrigin] = useState('Earth');
+
+  const isSearchOpen = useStore((s) => s.isSearchOpen);
+
+  const [fullArchive, setFullArchive] = useState([]);
+
+  useEffect(() => {
+    if (isGalleryOpen || isSearchOpen) {
+      setShouldRun(false);
+    }
+  }, [isGalleryOpen, isSearchOpen, setShouldRun]);
+
   useEffect(() => {
     const fetchMissionData = async () => {
       try {
@@ -501,13 +608,15 @@ export default function App() {
         const origin = centerOrigin.toLowerCase();
         const requests = [
           axios.get(`${BACKEND_URL}/api/mission/trajectory`),
+          axios.get(`${BACKEND_URL}/api/mission/archive`),
           ...trajectoryKeys.map(obj => axios.get(`${BACKEND_URL}/api/trajectory/${obj}/${origin}`))
         ];
 
         const responses = await Promise.all(requests);
 
-        const [missionRes, orionRes, moonRes, earthRes, sunRes] = responses;
+        const [missionRes, archiveRes, orionRes, moonRes, earthRes, sunRes] = responses;
 
+        setFullArchive(archiveRes.data);
         setMilestones(missionRes.data.milestones);
         setTrajectories({
           orion: orionRes.data,
@@ -538,7 +647,7 @@ export default function App() {
   }, [isDataLoaded]);
 
   const handleTimelineClick = async (m) => {
-    setShouldRun(false);
+    // setShouldRun(false);
     setSelectedDay(m.day);
     setGalleryData(null);
     setIsLoadingGallery(true);
@@ -614,9 +723,23 @@ export default function App() {
       </Canvas>
 
 
-      {isDataLoaded && !isGalleryOpen && (
+      {isDataLoaded && !isGalleryOpen && !isSearchOpen && (
         <>
-          <FocusMenu focusTarget={focusTarget} setFocusTarget={setFocusTarget} centerOrigin={centerOrigin} setCenterOrigin={setCenterOrigin} />
+          <div className="fixed top-2 left-0 right-0 z-[100] px-4 xl:px-8 xl:top-8 flex flex-col xl:flex-row xl:justify-between items-start pointer-events-none gap-4">
+            <div className="pointer-events-auto order-1 xl:order-2 self-start">
+              <SearchBar />
+            </div>
+            <div className="pointer-events-auto order-2 xl:order-1 self-start">
+              <FocusMenu
+                focusTarget={focusTarget}
+                setFocusTarget={setFocusTarget}
+                centerOrigin={centerOrigin}
+                setCenterOrigin={setCenterOrigin}
+              />
+            </div>
+
+            
+          </div>
           <MissionControl milestones={milestones} />
           <Timeline milestones={milestones} onTimelineClick={handleTimelineClick} />
 
@@ -626,6 +749,7 @@ export default function App() {
       {isGalleryOpen && (
         <Gallery galleryData={galleryData} isOpen={isGalleryOpen} onClose={handleCloseGallery} isLoadingGallery={isLoadingGallery} selectedDay={selectedDay} />
       )}
+      <SearchGallery allImages={fullArchive} />
     </div>
   );
 }

@@ -5,6 +5,9 @@ export const useStore = create((set) => ({
   shouldRun: true,
   speed: 0.008,
   isGalleryOpen: false,
+  isSearchOpen: false,
+  globalSearchQuery: "",
+
   advance: (dt) => set((state) => {
     return ({
       progress: state.shouldRun ? (state.progress + dt * state.speed) % 1 : state.progress
@@ -13,5 +16,6 @@ export const useStore = create((set) => ({
   setProgress: (val) => set({ progress: val }),
   setShouldRun: (val) => set({ shouldRun: val }),
   setIsGalleryOpen: (open) => set({ isGalleryOpen: open }),
-
+  setIsSearchOpen: (val) => set({ isSearchOpen: val }),
+  setGlobalSearchQuery: (val) => set({ globalSearchQuery: val }),
 }))
