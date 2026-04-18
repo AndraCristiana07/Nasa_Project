@@ -1,12 +1,11 @@
 import { forwardRef, useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { useTexture, Html } from '@react-three/drei';
+import { useGLTF, useTexture, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import sunColor from './assets/2k_sun.jpg'
 import { useStore } from './store';
 import { convertCoords } from './utils/solarConverter'
 import axios from 'axios';
-import { useGLTF } from '@react-three/drei';
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 
@@ -17,106 +16,163 @@ const EARTH_RADIUS = 0.3;
 
 // mock data 
 const MOCK_FLARES = [
-    {
-        "lat": 2,
-        "lng": 30,
-        "id": "2026-04-01T13:38:00-FLR-001",
-        "class": "C5.3",
-        "peakTime": "2026-04-01T13:48Z",
-        "size": 0.765,
-        "color": "#efdf67"
-    },
-    {
-        "lat": 20,
-        "lng": -23,
-        "id": "2026-04-01T23:08:00-FLR-001",
-        "class": "C6.1",
-        "peakTime": "2026-04-01T23:28Z",
-        "size": 0.8049999999999999,
-        "color": "#efdf67"
-    },
-    {
-        "lat": 12,
-        "lng": -18,
-        "id": "2026-04-02T17:23:00-FLR-001",
-        "class": "M3.5",
-        "peakTime": "2026-04-02T18:15Z",
-        "size": 1.35,
-        "color": "#f98029"
-    },
-    {
-        "lat": 2,
-        "lng": 7,
-        "id": "2026-04-03T07:45:00-FLR-001",
-        "class": "M1.3",
-        "peakTime": "2026-04-03T07:56Z",
-        "size": 1.13,
-        "color": "#f98029"
-    },
-    {
-        "lat": 2,
-        "lng": 4,
-        "id": "2026-04-03T12:46:00-FLR-001",
-        "class": "M1.3",
-        "peakTime": "2026-04-03T12:50Z",
-        "size": 1.13,
-        "color": "#f98029"
-    },
-    {
-        "lat": 2,
-        "lng": -2,
-        "id": "2026-04-04T01:07:00-FLR-001",
-        "class": "M7.5",
-        "peakTime": "2026-04-04T01:17Z",
-        "size": 1.75,
-        "color": "#f98029"
-    },
-    {
-        "lat": 3,
-        "lng": -7,
-        "id": "2026-04-04T07:38:00-FLR-001",
-        "class": "M1.7",
-        "peakTime": "2026-04-04T07:58Z",
-        "size": 1.17,
-        "color": "#f98029"
-    },
-    {
-        "lat": 2,
-        "lng": -9,
-        "id": "2026-04-04T11:58:00-FLR-001",
-        "class": "M1.2",
-        "peakTime": "2026-04-04T12:11Z",
-        "size": 1.12,
-        "color": "#f98029"
-    },
-    {
-        "lat": 3,
-        "lng": -16,
-        "id": "2026-04-04T22:54:00-FLR-001",
-        "class": "M1.0",
-        "peakTime": "2026-04-04T23:04Z",
-        "size": 1.1,
-        "color": "#f98029"
-    },
-    {
-        "lat": 18,
-        "lng": 75,
-        "id": "2026-04-07T23:10:00-FLR-001",
-        "class": "C2.4",
-        "peakTime": "2026-04-07T23:20Z",
-        "size": 0.62,
-        "color": "#efdf67"
-    },
-    {
-        "lat": 1,
-        "lng": -76,
-        "id": "2026-04-09T08:23:00-FLR-001",
-        "class": "M1.0",
-        "peakTime": "2026-04-09T08:45Z",
-        "size": 1.1,
-        "color": "#f98029"
-    }
+  {
+    "lat": 2,
+    "lng": 30,
+    "id": "2026-04-01T13:38:00-FLR-001",
+    "class": "C5.3",
+    "peakTime": "2026-04-01T13:48Z",
+    "size": 0.765,
+    "color": "#efdf67"
+  },
+  {
+    "lat": 20,
+    "lng": -23,
+    "id": "2026-04-01T23:08:00-FLR-001",
+    "class": "C6.1",
+    "peakTime": "2026-04-01T23:28Z",
+    "size": 0.8049999999999999,
+    "color": "#efdf67"
+  },
+  {
+    "lat": 12,
+    "lng": -18,
+    "id": "2026-04-02T17:23:00-FLR-001",
+    "class": "M3.5",
+    "peakTime": "2026-04-02T18:15Z",
+    "size": 1.35,
+    "color": "#f98029"
+  },
+  {
+    "lat": 2,
+    "lng": 7,
+    "id": "2026-04-03T07:45:00-FLR-001",
+    "class": "M1.3",
+    "peakTime": "2026-04-03T07:56Z",
+    "size": 1.13,
+    "color": "#f98029"
+  },
+  {
+    "lat": 2,
+    "lng": 4,
+    "id": "2026-04-03T12:46:00-FLR-001",
+    "class": "M1.3",
+    "peakTime": "2026-04-03T12:50Z",
+    "size": 1.13,
+    "color": "#f98029"
+  },
+  {
+    "lat": 2,
+    "lng": -2,
+    "id": "2026-04-04T01:07:00-FLR-001",
+    "class": "M7.5",
+    "peakTime": "2026-04-04T01:17Z",
+    "size": 1.75,
+    "color": "#f98029"
+  },
+  {
+    "lat": 3,
+    "lng": -7,
+    "id": "2026-04-04T07:38:00-FLR-001",
+    "class": "M1.7",
+    "peakTime": "2026-04-04T07:58Z",
+    "size": 1.17,
+    "color": "#f98029"
+  },
+  {
+    "lat": 2,
+    "lng": -9,
+    "id": "2026-04-04T11:58:00-FLR-001",
+    "class": "M1.2",
+    "peakTime": "2026-04-04T12:11Z",
+    "size": 1.12,
+    "color": "#f98029"
+  },
+  {
+    "lat": 3,
+    "lng": -16,
+    "id": "2026-04-04T22:54:00-FLR-001",
+    "class": "M1.0",
+    "peakTime": "2026-04-04T23:04Z",
+    "size": 1.1,
+    "color": "#f98029"
+  },
+  {
+    "lat": 18,
+    "lng": 75,
+    "id": "2026-04-07T23:10:00-FLR-001",
+    "class": "C2.4",
+    "peakTime": "2026-04-07T23:20Z",
+    "size": 0.62,
+    "color": "#efdf67"
+  },
+  {
+    "lat": 1,
+    "lng": -76,
+    "id": "2026-04-09T08:23:00-FLR-001",
+    "class": "M1.0",
+    "peakTime": "2026-04-09T08:45Z",
+    "size": 1.1,
+    "color": "#f98029"
+  }
 ]
+
+
+const PlanetLabel = ({ name, color, radius }) => {
+
+   const colors = {
+    blue: "text-blue-500 border-blue-500/50 ",
+    red: "text-red-500 border-red-500/50",
+    yellow: "text-yellow-500 border-yellow-500/50",
+    purple: "text-purple-500 border-purple-500/50",
+
+  };
+
+  const groupRef = useRef();
+  // ref for div for styling
+  const domRef = useRef();
+
+  useFrame(({ camera }) => {
+    if (!groupRef.current || !domRef.current) return;
+
+    const worldPos = new THREE.Vector3();
+    groupRef.current.getWorldPosition(worldPos);
+
+    const dist = camera.position.distanceTo(worldPos);
+
+    // hide label if camera is too close 
+    const isTooClose = dist < radius * 8;
+    domRef.current.style.opacity = isTooClose ? '0' : '1';
+    domRef.current.style.visibility = isTooClose ? 'hidden' : 'visible';
+  });
+
+  return (
+    <group ref={groupRef}>
+      <Html
+        center
+        zIndexRange={[100, 0]}
+        occlude="blending"
+        pointerEvents="none"
+        style={{
+          pointerEvents: 'none',
+          whiteSpace: 'nowrap',
+          transition: 'opacity 0.5s',
+          zIndex: 1000,
+        }}
+      >
+        <div ref={domRef} className="flex flex-col items-center group">
+          {/* text box */}
+          <div className={`
+          px-2 py-1 bg-black/60 border ${colors[color]}
+          font-mono text-[10px] uppercase tracking-widest
+        `}>
+            {name}
+          </div>
+        </div>
+      </Html>
+    </group>
+  );
+};
 
 // --- EARTH ---
 const Earth = forwardRef(({ curve }, ref) => {
@@ -129,26 +185,30 @@ const Earth = forwardRef(({ curve }, ref) => {
 
       const totalSpins = 20;
       const currentRotation = progress * Math.PI * 2 * totalSpins;
-
       ref.current.rotation.y = currentRotation;
     }
   });
 
   return (
-    <mesh ref={ref}>
-      <sphereGeometry args={[EARTH_RADIUS, 64, 64]} />
-      <meshStandardMaterial
-        map={texture}
-        roughness={0.7}
-        metalness={0.1}
-        emissive={new THREE.Color('#000000')}
-      />
-    </mesh>
+    <group ref={ref}>
+      <mesh >
+        <sphereGeometry args={[EARTH_RADIUS, 64, 64]} />
+        <meshStandardMaterial
+          map={texture}
+          roughness={0.7}
+          metalness={0.1}
+          emissive={new THREE.Color('#000000')}
+        />
+      </mesh>
+      <group position={[0, EARTH_RADIUS * 1.5, 0]}>
+        <PlanetLabel name="Earth" color="blue" radius={EARTH_RADIUS} />
+      </group>
+    </group>
+
   );
 });
 
 // --- MOON ---
-
 const Moon = forwardRef(({ curve }, ref) => {
   const texture = useTexture('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg');
 
@@ -160,16 +220,22 @@ const Moon = forwardRef(({ curve }, ref) => {
 
       const totalSpins = 20;
       const currentRotation = progress * Math.PI * 2 * totalSpins;
-
       ref.current.rotation.y = currentRotation;
     }
   });
 
+
   return (
-    <mesh ref={ref}>
-      <sphereGeometry args={[MOON_RADIUS, 32, 32]} />
-      <meshStandardMaterial map={texture} />
-    </mesh>
+    <group ref={ref}>
+      <mesh>
+        <sphereGeometry args={[MOON_RADIUS, 32, 32]} />
+        <meshStandardMaterial map={texture} />
+      </mesh>
+
+      <group position={[0, MOON_RADIUS * 1.5, 0]}>
+        <PlanetLabel name="Moon" color="yellow" radius={MOON_RADIUS} />
+      </group>
+    </group>
   );
 
 });
@@ -193,20 +259,27 @@ const Orion = forwardRef(({ curve }, ref) => {
   });
 
   return (
-    <mesh ref={ref}>
-      <sphereGeometry args={[0.02, 8, 8]} />
-      <meshBasicMaterial
-        visible={false}
-        transparent={true}
-        depthWrite={false}
-        depthTest={false}
-      />
-      <primitive
-        object={scene}
-        ref={ref}
-        scale={ORION_RADIUS}
-        rotation={[Math.PI / 2, 0, 0]} />
-    </mesh>
+    <group ref={ref}>
+      <mesh >
+        <sphereGeometry args={[0.02, 8, 8]} />
+        <meshBasicMaterial
+          visible={false}
+          transparent={true}
+          depthWrite={false}
+          depthTest={false}
+        />
+        <primitive
+          object={scene}
+          ref={ref}
+          scale={ORION_RADIUS}
+          rotation={[Math.PI / 2, 0, 0]} />
+      </mesh>
+      <group position={[0, ORION_RADIUS * 4, 0]}>
+        <PlanetLabel name="Orion" color="red" radius={ORION_RADIUS} />
+      </group>
+
+    </group>
+
   );
 });
 useGLTF.preload('/orionspacecraft.glb');
@@ -240,7 +313,7 @@ const FlareMarker = ({ flare, sunRef }) => {
 
     const t = state.clock.getElapsedTime()
     const pulseSpeed = flare.class.startsWith('X') ? 8 : flare.class.startsWith('M') ? 4 : 2
-    // dynamic Glow
+    // dynamic glow
     meshRef.current.material.emissiveIntensity = 2 + Math.sin(t * pulseSpeed) * 1.5
   })
 
@@ -405,6 +478,9 @@ const Sun = forwardRef(({ curve }, ref) => {
         />
         <pointLight intensity={15} distance={20000} decay={0} color="#fff5d1" />
       </mesh>
+      <group position={[0, SUN_RADIUS + 5000, 0]}>
+        <PlanetLabel name="Sun" color="purple" radius={SUN_RADIUS} />
+      </group>
 
       <group ref={flareGroupRef}>
         {flares.map(flare => (

@@ -7,9 +7,15 @@ import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import { useThree } from '@react-three/fiber';
 import { useStore } from './store';
 import './App.css';
+import { Moon, Orion, Earth, Sun } from './planets'
+
+const SUN_BUFFER = 1.02;
+const EARTH_BUFFER = 1.5;
+const MOON_BUFFER = 1.2;
+const ORION_BUFFER = 2.5;
+
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
-import { Moon, Orion, Earth, Sun } from './planets'
 
 const Trajectory = ({ curve, color = "white" }) => {
   // generate array of points from the curve
@@ -47,15 +53,6 @@ function CameraTracker({ targetRef, targetName }) {
     if (targetRef.current && controlsRef.current) {
       const currentPosition = targetRef.current.position;
 
-      const radius = targetRef.current.geometry?.parameters?.radius || 1;
-
-      let minBuffer = 1.1;
-      if (targetName === 'Sun') minBuffer = 1.02;
-      if (targetName === 'Earth') minBuffer = 1.5;
-      if (targetName === 'Moon') minBuffer = 1.2;
-      if (targetName === 'Orion') minBuffer = 2.5;
-      controlsRef.current.minDistance = radius * minBuffer;
-
       // calculate the displacement of the planet
       const delta = deltaRef.current.subVectors(currentPosition, lastPosition.current);
       // apply that same displacement to the camera
@@ -75,11 +72,7 @@ function CameraTracker({ targetRef, targetName }) {
       targetRef.current.getWorldPosition(targetPos);
 
       // get the radius of the sphere 
-      let radius = 0.1;
-      if (targetName === 'Sun') radius = 2400;
-      else if (targetName === 'Earth') radius = 0.3;
-      else if (targetName === 'Moon') radius = 0.1;
-      else if (targetName === 'Orion') radius = 0.015;
+      const radius = targetRef.current.getObjectByProperty('type', 'Mesh').geometry?.parameters?.radius || 1;
 
       const currentDist = camera.position.distanceTo(targetPos);
       if (currentDist > radius * 100) {
@@ -101,8 +94,11 @@ function CameraTracker({ targetRef, targetName }) {
 
       camera.position.copy(newPos);
       camera.lookAt(targetPos);
+      if (targetName === 'Sun') controlsRef.current.minDistance = radius * SUN_BUFFER;
+      if (targetName === 'Earth') controlsRef.current.minDistance = radius * EARTH_BUFFER;
+      if (targetName === 'Moon') controlsRef.current.minDistance = radius * MOON_BUFFER;
+      if (targetName === 'Orion') controlsRef.current.minDistance = radius * ORION_BUFFER;;
 
-      controlsRef.current.minDistance = radius * 1.15;
       controlsRef.current.target.copy(targetPos);
       controlsRef.current.update();
 
@@ -115,6 +111,8 @@ function CameraTracker({ targetRef, targetName }) {
       ref={controlsRef}
       enablePan={false}
       makeDefault
+      enableDamping={true}
+      screenSpacePanning={true}
       dampingFactor={0.05}
       maxDistance={1000000}
     />
@@ -264,9 +262,9 @@ const ArtemisScene = ({ focusTarget, trajectories }) => {
       {/* trajectory for debugging to see if sun actually moves */}
       <Trajectory curve={curves.sun} color='purple' />
       <Sun ref={sunRef} curve={curves.sun} />
-      <Earth ref={earthRef} curve={curves.earth}/>
-      <Moon ref={moonRef} curve={curves.moon}/>
-      <Orion ref={orionRef} curve={curves.orion}/>
+      <Earth ref={earthRef} curve={curves.earth} />
+      <Moon ref={moonRef} curve={curves.moon} />
+      <Orion ref={orionRef} curve={curves.orion} />
       {activeRef && <CameraTracker targetRef={activeRef} targetName={focusTarget} />}
     </group>
   );
