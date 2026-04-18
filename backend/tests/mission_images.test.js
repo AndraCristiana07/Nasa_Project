@@ -1,55 +1,52 @@
-const { getArchive } = require('../routes/mission_images');
+const request = require('supertest');
+const app = require('../app');
 const fs = require('fs');
 
 jest.mock('fs');
 
-describe('Archive Logic Test', () => {
-    let req, res;
+describe('Archive Integration Test', () => {
 
     beforeEach(() => {
-        req = {};
-        res = {
-            status: jest.fn().mockReturnThis(),
-            json: jest.fn().mockReturnThis()
-        };
+        jest.clearAllMocks();
     });
 
-    it('should flatten multiple days of data into one list', () => {
+    it('successfully flattens and returns the mission archive', async () => {
         const mockData = {
-            "Day 1": [{
+            "2026-04-01": [{
                 links: [{ href: 'url1' }],
-                data: [{
-                    title: 'T1',
-                    description: 'D1', 
-                    keywords: ['space'] 
-                }]
+                data: [{ title: 'T1', description: 'D1' }]
             }],
-            "Day 2": [{
+            "2026-04-02": [{
                 links: [{ href: 'url2' }],
-                data: [{
-                    title: 'T2',
-                    description: 'D2' 
-                }]
+                data: [{ title: 'T2', description: 'D2' }]
             }]
         };
 
+        // mock file reading and the existance of it
         fs.readFileSync.mockReturnValue(JSON.stringify(mockData));
+        fs.existsSync.mockReturnValue(true);
 
-        getArchive(req, res);
+        const res = await request(app).get('/api/mission/archive');
 
-        // verify the response is a flattened array of 2 items
-        const responseData = res.json.mock.calls[0][0];
-        expect(responseData.length).toBe(2);
-        expect(responseData[0].title).toBe('T1');
-        expect(responseData[1].title).toBe('T2');
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body)).toBe(true);
+        expect(res.body.length).toBe(2);
+
+        // verify the mapping logic
+        expect(res.body[0]).toMatchObject({
+            url: 'url1',
+            title: 'T1'
+        });
     });
 
-    it('should return 500 on file error', () => {
-        fs.readFileSync.mockImplementation(() => { throw new Error(); });
+    it('should return 500 on file error', async () => {
+        fs.readFileSync.mockImplementation(() => {
+            throw new Error("File read error");
+        });
 
-        getArchive(req, res);
+        const res = await request(app).get('/api/mission/archive');
 
-        expect(res.status).toHaveBeenCalledWith(500);
-        expect(res.json).toHaveBeenCalledWith({ error: "Failed to fetch archive" });
+        expect(res.statusCode).toBe(500);
+        expect(res.body.error).toBe("Failed to fetch archive");
     });
 });

@@ -1,0 +1,32 @@
+const express = require('express');
+const cors = require('cors');
+const morgan = require('morgan');
+require('dotenv').config();
+
+const app = express();
+app.use(cors());
+app.use(morgan('dev'));
+
+const {router: missionDayRouter} = require('./routes/mission_day');
+const {router: flaresRouter} = require('./routes/flares');
+const {data: data} = require('./routes/mission_data');
+const {router: trajectoryRouter} = require('./routes/trajectory');
+const {getArchive:getArchive} = require('./routes/mission_images')
+
+app.get('/', async (req, res) => {
+    res.status(200).json({body: 'The backend is running'});
+});
+
+app.use(missionDayRouter);
+
+app.get('/api/mission/archive', getArchive);
+
+app.get('/api/mission/data', (req, res) => {
+    res.json(data);
+});
+
+app.use(flaresRouter);
+
+app.use(trajectoryRouter);
+
+module.exports = app 

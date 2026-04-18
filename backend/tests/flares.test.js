@@ -1,33 +1,58 @@
-const { calculateFlareData } = require('../routes/flares'); 
+const request = require('supertest');
+const axios = require('axios');
+const app = require('../app'); 
+const { cache } = require('../routes/flares');
 
-describe('Solar Flare API Logic', () => {
+jest.mock('axios');
 
-    test('Should parse N20W23 to +20 lat and -23 lng', () => {
-        const sample = { sourceLocation: 'N20W23', classType: 'X1.0' };
-        const result = calculateFlareData(sample);
-        expect(result.lat).toBe(20);
-        expect(result.lng).toBe(-23);
+describe('Solar Flare API Integration', () => {
+    
+    beforeEach(() => {
+        jest.clearAllMocks();
+        // clear the cache
+        for (const key in cache) delete cache[key];
     });
 
-    test('Should parse S15E40 to -15 lat and +40 lng', () => {
-        const sample = { sourceLocation: 'S15E40', classType: 'M1.0' };
-        const result = calculateFlareData(sample);
-        expect(result.lat).toBe(-15);
-        expect(result.lng).toBe(40);
+    it('should return mapped flares from NASA', async () => {
+        const mockNASAData = [{
+            sourceLocation: 'N20W23',
+            classType: 'X1.0',
+            flrID: '123',
+            peakTime: '2026-04-02T00:00Z'
+        }];
+
+        axios.get.mockResolvedValue({ data: mockNASAData });
+
+        const res = await request(app).get('/api/solar-flares');
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body[0]).toMatchObject({
+            lat: 20,
+            lng: -23,
+            color: '#f11515' // X-class color
+        });
     });
 
-    test('X-Class flares should be significantly larger than C-Class', () => {
-        const flareC = calculateFlareData({ sourceLocation: 'N01E01', classType: 'C1.0' });
-        const flareX = calculateFlareData({ sourceLocation: 'N01E01', classType: 'X1.0' });
-        const flareM = calculateFlareData({ sourceLocation: 'N01E01', classType: 'M1.0' });
-        expect(flareX.size).toBeGreaterThan(flareC.size);
-        expect(flareX.size).toBeGreaterThan(flareM.size);
+    it('should handle NASA API errors', async () => {
+        axios.get.mockRejectedValue(new Error('NASA down'));
 
+        const res = await request(app).get('/api/solar-flares');
+
+        expect(res.statusCode).toBe(500);
+        expect(res.body.error).toContain('Failed to fetch');
     });
 
-    test('Magnitude should influence size (X2.0 > X1.0)', () => {
-        const x1 = calculateFlareData({ sourceLocation: 'N01E01', classType: 'X1.0' });
-        const x2 = calculateFlareData({ sourceLocation: 'N01E01', classType: 'X2.0' });
-        expect(x2.size).toBeGreaterThan(x1.size);
+    it('should filter out flares with missing data', async () => {
+        const mockNASAData = [
+            { sourceLocation: '', classType: 'M1.0' }, 
+            { sourceLocation: 'S10E10', classType: 'X1.0' }
+        ];
+
+        axios.get.mockResolvedValue({ data: mockNASAData });
+
+        const res = await request(app).get('/api/solar-flares');
+
+        expect(res.body.length).toBe(1);
+        expect(res.body[0].lat).toBe(-10);
     });
 });

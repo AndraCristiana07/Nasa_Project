@@ -64,4 +64,4 @@ router.get('/api/solar-flares', async (req, res) => {
     }
 });
 
-module.exports = { router: router, calculateFlareData: calculateFlareData }
+module.exports = { router: router, calculateFlareData: calculateFlareData, cache: cache }
