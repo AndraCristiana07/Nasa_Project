@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 
+const cache = {};
+
 const calculateFlareData = (flare) => {
     const loc = flare.sourceLocation;
     if (!loc) return null;
@@ -36,6 +38,12 @@ const calculateFlareData = (flare) => {
 };
 
 router.get('/api/solar-flares', async (req, res) => {
+    const cache_key = 'flares-apr-2026';
+    if (cache[cache_key]) {
+        console.log(`${cache_key} using cache`)
+        return res.json(cache[cache_key]); // check cache
+    }
+
     try {
         const response = await axios.get('https://api.nasa.gov/DONKI/FLR', {
             params: {
@@ -49,6 +57,7 @@ router.get('/api/solar-flares', async (req, res) => {
             .map(calculateFlareData)
             .filter(f => f !== null);
 
+        cache[cache_key] = flares; // save to cache
         res.json(flares);
     } catch (error) {
         res.status(500).json({ error: `Failed to fetch solar data: ${error}` });

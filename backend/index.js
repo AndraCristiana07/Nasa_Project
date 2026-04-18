@@ -7,7 +7,6 @@ const app = express();
 app.use(cors());
 app.use(morgan('dev'));
 
-const {router: weatherRouter} = require('./routes/weather');
 const {router: missionDayRouter} = require('./routes/mission_day');
 const {router: flaresRouter} = require('./routes/flares');
 const {data: data} = require('./routes/mission_data');
@@ -21,8 +20,6 @@ app.get('/api/mission/archive', getArchive);
 app.get('/api/mission/data', (req, res) => {
     res.json(data);
 });
-
-app.use(weatherRouter);
 
 app.use(flaresRouter);
 
