@@ -120,7 +120,7 @@ const MOCK_FLARES = [
 
 const PlanetLabel = ({ name, color, radius }) => {
 
-   const colors = {
+  const colors = {
     blue: "text-blue-500 border-blue-500/50 ",
     red: "text-red-500 border-red-500/50",
     yellow: "text-yellow-500 border-yellow-500/50",
@@ -177,6 +177,7 @@ const PlanetLabel = ({ name, color, radius }) => {
 // --- EARTH ---
 const Earth = forwardRef(({ curve }, ref) => {
   const texture = useTexture('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg');
+  const showLabels = useStore((state) => state.showLabels);
 
   useFrame(() => {
     const { progress } = useStore.getState();
@@ -200,9 +201,11 @@ const Earth = forwardRef(({ curve }, ref) => {
           emissive={new THREE.Color('#000000')}
         />
       </mesh>
-      <group position={[0, EARTH_RADIUS * 1.5, 0]}>
-        <PlanetLabel name="Earth" color="blue" radius={EARTH_RADIUS} />
-      </group>
+      {showLabels && (
+        <group position={[0, EARTH_RADIUS * 1.5, 0]}>
+          <PlanetLabel name="Earth" color="blue" radius={EARTH_RADIUS} />
+        </group>
+      )}
     </group>
 
   );
@@ -211,6 +214,7 @@ const Earth = forwardRef(({ curve }, ref) => {
 // --- MOON ---
 const Moon = forwardRef(({ curve }, ref) => {
   const texture = useTexture('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg');
+  const showLabels = useStore((state) => state.showLabels);
 
   useFrame(() => {
     const { progress } = useStore.getState();
@@ -231,10 +235,11 @@ const Moon = forwardRef(({ curve }, ref) => {
         <sphereGeometry args={[MOON_RADIUS, 32, 32]} />
         <meshStandardMaterial map={texture} />
       </mesh>
-
-      <group position={[0, MOON_RADIUS * 1.5, 0]}>
-        <PlanetLabel name="Moon" color="yellow" radius={MOON_RADIUS} />
-      </group>
+      {showLabels && (
+        <group position={[0, MOON_RADIUS * 1.5, 0]}>
+          <PlanetLabel name="Moon" color="yellow" radius={MOON_RADIUS} />
+        </group>
+      )}
     </group>
   );
 
@@ -242,8 +247,8 @@ const Moon = forwardRef(({ curve }, ref) => {
 
 // --- ORION ---
 const Orion = forwardRef(({ curve }, ref) => {
-
   const { scene } = useGLTF('/orionspacecraft.glb');
+  const showLabels = useStore((state) => state.showLabels);
 
   useFrame(() => {
     const { progress } = useStore.getState();
@@ -274,9 +279,11 @@ const Orion = forwardRef(({ curve }, ref) => {
           scale={ORION_RADIUS}
           rotation={[Math.PI / 2, 0, 0]} />
       </mesh>
-      <group position={[0, ORION_RADIUS * 4, 0]}>
-        <PlanetLabel name="Orion" color="red" radius={ORION_RADIUS} />
-      </group>
+      {showLabels && (
+        <group position={[0, ORION_RADIUS * 4, 0]}>
+          <PlanetLabel name="Orion" color="red" radius={ORION_RADIUS} />
+        </group>
+      )}
 
     </group>
 
@@ -418,6 +425,8 @@ const Sun = forwardRef(({ curve }, ref) => {
   const flareGroupRef = useRef();
   const texture = useTexture(sunColor);
 
+  const showLabels = useStore((state) => state.showLabels);
+
   useEffect(() => {
     const fetchFlares = async () => {
       try {
@@ -478,10 +487,12 @@ const Sun = forwardRef(({ curve }, ref) => {
         />
         <pointLight intensity={15} distance={20000} decay={0} color="#fff5d1" />
       </mesh>
-      <group position={[0, SUN_RADIUS + 5000, 0]}>
-        <PlanetLabel name="Sun" color="purple" radius={SUN_RADIUS} />
-      </group>
 
+      {showLabels && (
+        <group position={[0, SUN_RADIUS + 5000, 0]}>
+          <PlanetLabel name="Sun" color="purple" radius={SUN_RADIUS} />
+        </group>
+      )}
       <group ref={flareGroupRef}>
         {flares.map(flare => (
           <FlareMarker key={flare.id} flare={flare} sunRef={ref} />

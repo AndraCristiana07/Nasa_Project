@@ -8,6 +8,8 @@ export const useStore = create((set) => ({
   isSearchOpen: false,
   globalSearchQuery: "",
   isOrbitLoading: false,
+  showLabels: true,
+  showTrajectories: true,
 
   advance: (dt) => set((state) => {
     return ({
@@ -20,4 +22,6 @@ export const useStore = create((set) => ({
   setIsSearchOpen: (val) => set({ isSearchOpen: val }),
   setGlobalSearchQuery: (val) => set({ globalSearchQuery: val }),
   setIsOrbitLoading: (val) => set({ isOrbitLoading: val }),
+  toggleLabels: () => set((state) => ({ showLabels: !state.showLabels })),
+  toggleTrajectories: () => set((state) => ({ showTrajectories: !state.showTrajectories })),
 }))

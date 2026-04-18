@@ -18,6 +18,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 
 const Trajectory = ({ curve, color = "white" }) => {
+  const { showTrajectories } = useStore();
   // generate array of points from the curve
   const points = useMemo(() => {
     if (!curve) return []
@@ -28,15 +29,19 @@ const Trajectory = ({ curve, color = "white" }) => {
   if (points.length === 0) return null
 
   return (
-    <Line
-      points={points}
-      color={color}
-      lineWidth={1.5}
-      dashed={true}
-      dashScale={50}
-      dashSize={0.5}
-      dashGap={0.5}
-    />
+    <>
+      {showTrajectories && (
+        <Line
+          points={points}
+          color={color}
+          lineWidth={1.5}
+          dashed={true}
+          dashScale={50}
+          dashSize={0.5}
+          dashGap={0.5}
+        />
+      )}
+    </>
   )
 }
 
@@ -157,7 +162,7 @@ const MissionControl = ({ milestones }) => {
           <button
             aria-label={shouldRun ? "pause" : "play"}
             onClick={togglePlayback}
-            className="w-10 h-10 md:w-12 md:h-12 flex-shrink-0 flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-all"
+            className="cursor-pointer w-10 h-10 md:w-12 md:h-12 flex-shrink-0 flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-all"
           >
             {shouldRun ? (
               <div className="flex gap-1.5">
@@ -314,7 +319,7 @@ const FocusMenu = ({ focusTarget, setFocusTarget, centerOrigin, setCenterOrigin 
               onClick={() => setFocusTarget(name)}
               data-testid={`focus-${name}`}
               className={`
-                flex-shrink-0 relative px-4 py-2 text-left transition-all duration-300 group
+                flex-shrink-0 relative px-4 py-2 text-left transition-all duration-300 group cursor-pointer
                 font-mono text-[10px] md:text-[12px] tracking-[0.2em] uppercase
                 border-b-2 md:border-b-0 md:border-l-2
                 ${focusTarget === name
@@ -415,7 +420,7 @@ const Timeline = ({ milestones, onTimelineClick }) => {
               useStore.getState().setIsGalleryOpen(true);
             }}
             className="
-              flex-shrink-0 flex group relative transition-all
+              flex-shrink-0 flex group relative transition-all cursor-pointer
               pl-3 py-1 md:pl-4 md:hover:translate-x-1
               w-[80px] md:w-full "
           >
@@ -614,6 +619,52 @@ const SearchGallery = ({ allImages }) => {
   );
 };
 
+const Settings = () => {
+  const { showLabels, showTrajectories, toggleLabels, toggleTrajectories } = useStore();
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+   <div className="relative pointer-events-auto">
+      {/* open settings button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="group cursor-pointer p-3 bg-slate-900/90 backdrop-blur-md border border-blue-500/30 rounded-full text-white hover:border-blue-400 hover:bg-white/10 backdrop-blur-md transition-all"
+      > <div className="transition-transform duration-500 ease-in-out group-hover:rotate-90">⚙️</div>
+      </button>
+
+      {/* menu */}
+      {isOpen && (
+        <div className="absolute z-[200] top-full right-0 mt-2 p-4 bg-black/90 border border-white/20 rounded-lg w-64 shadow-2xl animate-in fade-in zoom-in-95 origin-top-right">
+          <h3 className="text-white font-mono text-[10px] uppercase tracking-widest mb-4 opacity-50">Visual Settings</h3>
+          <div className="space-y-4">
+            {/* label toggle */}
+            <div className="flex justify-between items-center">
+              <span className="text-white text-sm font-medium">Object Labels</span>
+              <button
+                onClick={toggleLabels}
+                className={`w-10 h-5 rounded-full transition-colors relative ${showLabels ? 'bg-blue-500' : 'bg-gray-600'}`}
+              >
+                <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${showLabels ? 'left-6' : 'left-1'}`} />
+              </button>
+            </div>
+
+            {/* trajectory toggle */}
+            <div className="flex justify-between items-center">
+              <span className="text-white text-sm font-medium">Orbital Paths</span>
+              <button
+                onClick={toggleTrajectories}
+                className={`w-10 h-5 rounded-full transition-colors relative ${showTrajectories ? 'bg-blue-500' : 'bg-gray-600'}`}
+              >
+                <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${showTrajectories ? 'left-6' : 'left-1'}`} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function App() {
   const [focusTarget, setFocusTarget] = useState('Earth');
 
@@ -770,12 +821,14 @@ export default function App() {
         )}
       </Canvas>
 
-
       {isDataLoaded && !isGalleryOpen && !isSearchOpen && (
         <>
-          <div className="fixed top-2 left-0 right-0 z-[100] px-4 xl:px-8 xl:top-8 flex flex-col xl:flex-row xl:justify-between items-start pointer-events-none gap-4">
-            <div className="pointer-events-auto order-1 xl:order-2 self-start">
+          {/* top container*/}
+          <div className="fixed top-2 left-0 right-0 z-[100] px-4 xl:px-8 xl:top-6 flex flex-col xl:flex-row xl:justify-between items-start pointer-events-none gap-4">
+            {/* search bar and settings: left on small screens, right on bigger */}
+            <div className="flex flex-row items-center gap-2 pointer-events-auto order-1 xl:order-2 self-start xl:self-auto">
               <SearchBar />
+              <Settings />
             </div>
             <div className="pointer-events-auto order-2 xl:order-1 self-start">
               <FocusMenu
@@ -785,12 +838,10 @@ export default function App() {
                 setCenterOrigin={setCenterOrigin}
               />
             </div>
-
-
           </div>
+
           <MissionControl milestones={milestones} />
           <Timeline milestones={milestones} onTimelineClick={handleTimelineClick} />
-
         </>
       )}
       {/* gallery*/}
