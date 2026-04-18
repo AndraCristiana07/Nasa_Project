@@ -40,6 +40,7 @@ axios.get.mockImplementation((url) => {
     if (url.includes('/api/mission/archive')) {
         return Promise.resolve({ data: [] });
     }
+    
 
     // fallback to prevent undefined crashes
     return Promise.resolve({ baseResponse });
@@ -47,9 +48,17 @@ axios.get.mockImplementation((url) => {
 beforeEach(() => {
     vi.clearAllMocks();
     useStore.setState({
+        // 1. The big ones
         globalSearchQuery: "",
         isSearchOpen: false,
-        isGalleryOpen: false
+        isGalleryOpen: false,
+
+        isOrbitLoading: false,
+        shouldRun: true,
+
+        showLabels: true,
+        showTrajectories: true,
+        progress: 0,
     });
 });
 
@@ -106,7 +115,7 @@ describe('Frontend UI Tests', () => {
 
         const input = await screen.findByTestId('search-input');
 
-        // 3. Type and Enter
+        // type and enter
         await user.type(input, 'Artemis{enter}');
 
         // verify if store updated
@@ -117,5 +126,45 @@ describe('Frontend UI Tests', () => {
         }, { timeout: 2000 });
     });
 
+    it('clicking setting button opens overlay', async () => {
+        render(<App />);
+
+        const settingsBtn = await screen.findByTestId('settings-button');
+        fireEvent.click(settingsBtn);
+
+        const menu = await screen.findByText(/Visual Settings/i);
+        expect(menu).toBeInTheDocument();
+        const objLabel = await screen.findByText(/Object Labels/i);
+        expect(objLabel).toBeInTheDocument();
+        const orbitalPaths = await screen.findByText(/Orbital Paths/i);
+        expect(orbitalPaths).toBeInTheDocument();
+    });
+
+    it('can close the gallery modal', async () => {
+
+        axios.get.mockResolvedValue({
+            data: {
+                milestones: [
+                    { day: 1, label: 'Launch' },
+                    { day: 6, label: 'The Big Day' } 
+                ]
+            },
+
+        });
+
+        render(<App />);
+        screen.debug();
+        // open the modal
+        const day6Btn = await screen.findByText(/Day 06/i);
+        fireEvent.click(day6Btn);
+
+        const closeBtn = screen.getByTestId('close-modal');
+        fireEvent.click(closeBtn);
+
+        // verify it closed
+        await waitFor(() => {
+            expect(screen.queryByText(/Science Officers/i)).not.toBeInTheDocument();
+        });
+    });
 });
 

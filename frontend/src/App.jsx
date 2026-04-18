@@ -467,6 +467,7 @@ const Modal = ({ isOpen, onClose, title, isLoading, children, isEmpty, emptyMess
             {title}
           </h2>
           <button
+            data-testid="close-modal"
             onClick={onClose}
             className="text-white hover:text-red-500 text-2xl transition-colors"
           >✕</button>
@@ -627,6 +628,7 @@ const Settings = () => {
    <div className="relative pointer-events-auto">
       {/* open settings button */}
       <button
+        data-testid="settings-button"
         onClick={() => setIsOpen(!isOpen)}
         className="group cursor-pointer p-3 bg-slate-900/90 backdrop-blur-md border border-blue-500/30 rounded-full text-white hover:border-blue-400 hover:bg-white/10 backdrop-blur-md transition-all"
       > <div className="transition-transform duration-500 ease-in-out group-hover:rotate-90">⚙️</div>
