@@ -437,7 +437,7 @@ const Sun = forwardRef(({ curve }, ref) => {
           setFlares(res.data);
         }
       } catch (err) {
-        console.error("Solar API unreachable. Falling back to local data.", err);
+        console.warn("Solar API unreachable. Falling back to local data.", err);
       }
     };
     fetchFlares()

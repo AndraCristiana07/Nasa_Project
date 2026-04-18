@@ -8,6 +8,8 @@ const calculateFlareData = (flare) => {
     const loc = flare.sourceLocation;
     if (!loc) return null;
 
+    const classType = flare.classType || 'C1.0';
+
     // regex to parse N20W23 into matches
     const match = loc.match(/([NS])(\d+)([EW])(\d+)/);
     if (!match) return null;
@@ -16,22 +18,22 @@ const calculateFlareData = (flare) => {
     const lng = match[3] === 'E' ? parseInt(match[4]) : -parseInt(match[4]);
 
     // map to magnitudes too (M1.0 => 1.0, X2.5 => 2.5)
-    const classMagnitude = parseFloat(flare.classType.substring(1)) || 1.0;
+    const classMagnitude = parseFloat(classType.substring(1)) || 1.0;
     let baseMultiplier = 0.5;
-    if (flare.classType.startsWith('M')) baseMultiplier = 1.0;
-    else if (flare.classType.startsWith('X')) baseMultiplier = 2.0;
+    if (classType.startsWith('M')) baseMultiplier = 1.0;
+    else if (classType.startsWith('X')) baseMultiplier = 2.0;
 
     const size = baseMultiplier * (1 + classMagnitude / 10); // size increases slightly with magnitude
     return {
         lat,
         lng,
         id: flare.flrID,
-        class: flare.classType, // X-high, M-medium
+        class: classType, // X-high, M-medium
         peakTime: flare.peakTime,
         // based on intensity change color and size 
         // X size 2.0 and red, M size 1.0 and orange, C size 0.5 and yellow
         size: size,
-        color: flare.classType.startsWith('X') ? '#f11515' : flare.classType.startsWith('M') ? '#f98029' : '#efdf67'
+        color: classType.startsWith('X') ? '#f11515' : classType.startsWith('M') ? '#f98029' : '#efdf67'
     };
 
 
