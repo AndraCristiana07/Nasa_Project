@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { create } from "zustand";
 
 const DEFAULT_SPEED = 0.008;
 
@@ -13,11 +13,14 @@ export const useStore = create((set) => ({
   showLabels: true,
   showTrajectories: true,
 
-  advance: (dt) => set((state) => {
-    return ({
-      progress: state.shouldRun ? (state.progress + dt * state.speed) % 1 : state.progress
-    })
-  }),
+  advance: (dt) =>
+    set((state) => {
+      return {
+        progress: state.shouldRun
+          ? (state.progress + dt * state.speed) % 1
+          : state.progress,
+      };
+    }),
   setProgress: (val) => set({ progress: val }),
   setShouldRun: (val) => set({ shouldRun: val }),
   setIsGalleryOpen: (open) => set({ isGalleryOpen: open }),
@@ -25,7 +28,8 @@ export const useStore = create((set) => ({
   setGlobalSearchQuery: (val) => set({ globalSearchQuery: val }),
   setIsOrbitLoading: (val) => set({ isOrbitLoading: val }),
   toggleLabels: () => set((state) => ({ showLabels: !state.showLabels })),
-  toggleTrajectories: () => set((state) => ({ showTrajectories: !state.showTrajectories })),
+  toggleTrajectories: () =>
+    set((state) => ({ showTrajectories: !state.showTrajectories })),
   setSpeed: (val) => set({ speed: val }),
   resetSpeed: () => set({ speed: DEFAULT_SPEED }),
-}))
+}));

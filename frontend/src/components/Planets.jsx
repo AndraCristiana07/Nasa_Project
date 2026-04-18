@@ -1,131 +1,26 @@
-import { forwardRef, useState, useEffect, useMemo, useRef, Suspense } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { useGLTF, useTexture, Html } from '@react-three/drei';
-import * as THREE from 'three';
-import sunColor from './assets/2k_sun.jpg'
-import { useStore } from './store';
-import { convertCoords } from './utils/solarConverter'
-import axios from 'axios';
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+import { forwardRef, useState, useMemo, useRef, useEffect } from "react";
+import axios from "axios";
+import { useFrame } from "@react-three/fiber";
+import { useGLTF, useTexture, Html } from "@react-three/drei";
+import * as THREE from "three";
+import sunColor from "../assets/2k_sun.jpg";
+import { useStore } from "../store";
+import { convertCoords } from "../utils/solarConverter";
+import { MOCK_FLARES } from "../utils/mock_flares";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
 const SUN_RADIUS = 2400;
-const MOON_RADIUS = 0.10;
+const MOON_RADIUS = 0.1;
 const ORION_RADIUS = 0.015;
 const EARTH_RADIUS = 0.3;
 
-// mock data 
-const MOCK_FLARES = [
-  {
-    "lat": 2,
-    "lng": 30,
-    "id": "2026-04-01T13:38:00-FLR-001",
-    "class": "C5.3",
-    "peakTime": "2026-04-01T13:48Z",
-    "size": 0.765,
-    "color": "#efdf67"
-  },
-  {
-    "lat": 20,
-    "lng": -23,
-    "id": "2026-04-01T23:08:00-FLR-001",
-    "class": "C6.1",
-    "peakTime": "2026-04-01T23:28Z",
-    "size": 0.8049999999999999,
-    "color": "#efdf67"
-  },
-  {
-    "lat": 12,
-    "lng": -18,
-    "id": "2026-04-02T17:23:00-FLR-001",
-    "class": "M3.5",
-    "peakTime": "2026-04-02T18:15Z",
-    "size": 1.35,
-    "color": "#f98029"
-  },
-  {
-    "lat": 2,
-    "lng": 7,
-    "id": "2026-04-03T07:45:00-FLR-001",
-    "class": "M1.3",
-    "peakTime": "2026-04-03T07:56Z",
-    "size": 1.13,
-    "color": "#f98029"
-  },
-  {
-    "lat": 2,
-    "lng": 4,
-    "id": "2026-04-03T12:46:00-FLR-001",
-    "class": "M1.3",
-    "peakTime": "2026-04-03T12:50Z",
-    "size": 1.13,
-    "color": "#f98029"
-  },
-  {
-    "lat": 2,
-    "lng": -2,
-    "id": "2026-04-04T01:07:00-FLR-001",
-    "class": "M7.5",
-    "peakTime": "2026-04-04T01:17Z",
-    "size": 1.75,
-    "color": "#f98029"
-  },
-  {
-    "lat": 3,
-    "lng": -7,
-    "id": "2026-04-04T07:38:00-FLR-001",
-    "class": "M1.7",
-    "peakTime": "2026-04-04T07:58Z",
-    "size": 1.17,
-    "color": "#f98029"
-  },
-  {
-    "lat": 2,
-    "lng": -9,
-    "id": "2026-04-04T11:58:00-FLR-001",
-    "class": "M1.2",
-    "peakTime": "2026-04-04T12:11Z",
-    "size": 1.12,
-    "color": "#f98029"
-  },
-  {
-    "lat": 3,
-    "lng": -16,
-    "id": "2026-04-04T22:54:00-FLR-001",
-    "class": "M1.0",
-    "peakTime": "2026-04-04T23:04Z",
-    "size": 1.1,
-    "color": "#f98029"
-  },
-  {
-    "lat": 18,
-    "lng": 75,
-    "id": "2026-04-07T23:10:00-FLR-001",
-    "class": "C2.4",
-    "peakTime": "2026-04-07T23:20Z",
-    "size": 0.62,
-    "color": "#efdf67"
-  },
-  {
-    "lat": 1,
-    "lng": -76,
-    "id": "2026-04-09T08:23:00-FLR-001",
-    "class": "M1.0",
-    "peakTime": "2026-04-09T08:45Z",
-    "size": 1.1,
-    "color": "#f98029"
-  }
-]
-
-
 const PlanetLabel = ({ name, color, radius }) => {
-
   const colors = {
     blue: "text-blue-500 border-blue-500/50 ",
     red: "text-red-500 border-red-500/50",
     yellow: "text-yellow-500 border-yellow-500/50",
     purple: "text-purple-500 border-purple-500/50",
-
   };
 
   const groupRef = useRef();
@@ -140,10 +35,10 @@ const PlanetLabel = ({ name, color, radius }) => {
 
     const dist = camera.position.distanceTo(worldPos);
 
-    // hide label if camera is too close 
+    // hide label if camera is too close
     const isTooClose = dist < radius * 8;
-    domRef.current.style.opacity = isTooClose ? '0' : '1';
-    domRef.current.style.visibility = isTooClose ? 'hidden' : 'visible';
+    domRef.current.style.opacity = isTooClose ? "0" : "1";
+    domRef.current.style.visibility = isTooClose ? "hidden" : "visible";
   });
 
   return (
@@ -154,18 +49,20 @@ const PlanetLabel = ({ name, color, radius }) => {
         occlude="blending"
         pointerEvents="none"
         style={{
-          pointerEvents: 'none',
-          whiteSpace: 'nowrap',
-          transition: 'opacity 0.5s',
+          pointerEvents: "none",
+          whiteSpace: "nowrap",
+          transition: "opacity 0.5s",
           zIndex: 1000,
         }}
       >
         <div ref={domRef} className="flex flex-col items-center group">
           {/* text box */}
-          <div className={`
+          <div
+            className={`
           px-2 py-1 bg-black/60 border ${colors[color]}
           font-mono text-[10px] uppercase tracking-widest
-        `}>
+        `}
+          >
             {name}
           </div>
         </div>
@@ -176,7 +73,9 @@ const PlanetLabel = ({ name, color, radius }) => {
 
 // --- EARTH ---
 const Earth = forwardRef(({ curve }, ref) => {
-  const texture = useTexture('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg');
+  const texture = useTexture(
+    "https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg",
+  );
   const showLabels = useStore((state) => state.showLabels);
 
   useFrame(() => {
@@ -192,13 +91,13 @@ const Earth = forwardRef(({ curve }, ref) => {
 
   return (
     <group ref={ref}>
-      <mesh >
+      <mesh>
         <sphereGeometry args={[EARTH_RADIUS, 64, 64]} />
         <meshStandardMaterial
           map={texture}
           roughness={0.7}
           metalness={0.1}
-          emissive={new THREE.Color('#000000')}
+          emissive={new THREE.Color("#000000")}
         />
       </mesh>
       {showLabels && (
@@ -207,13 +106,14 @@ const Earth = forwardRef(({ curve }, ref) => {
         </group>
       )}
     </group>
-
   );
 });
 
 // --- MOON ---
 const Moon = forwardRef(({ curve }, ref) => {
-  const texture = useTexture('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg');
+  const texture = useTexture(
+    "https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg",
+  );
   const showLabels = useStore((state) => state.showLabels);
 
   useFrame(() => {
@@ -227,7 +127,6 @@ const Moon = forwardRef(({ curve }, ref) => {
       ref.current.rotation.y = currentRotation;
     }
   });
-
 
   return (
     <group ref={ref}>
@@ -242,12 +141,11 @@ const Moon = forwardRef(({ curve }, ref) => {
       )}
     </group>
   );
-
 });
 
 // --- ORION ---
 const Orion = forwardRef(({ curve }, ref) => {
-  const { scene } = useGLTF('/orionspacecraft.glb');
+  const { scene } = useGLTF("/orionspacecraft.glb");
   const showLabels = useStore((state) => state.showLabels);
 
   useFrame(() => {
@@ -265,7 +163,7 @@ const Orion = forwardRef(({ curve }, ref) => {
 
   return (
     <group ref={ref}>
-      <mesh >
+      <mesh>
         <sphereGeometry args={[0.02, 8, 8]} />
         <meshBasicMaterial
           visible={false}
@@ -277,52 +175,57 @@ const Orion = forwardRef(({ curve }, ref) => {
           object={scene}
           ref={ref}
           scale={ORION_RADIUS}
-          rotation={[Math.PI / 2, 0, 0]} />
+          rotation={[Math.PI / 2, 0, 0]}
+        />
       </mesh>
       {showLabels && (
         <group position={[0, ORION_RADIUS * 4, 0]}>
           <PlanetLabel name="Orion" color="red" radius={ORION_RADIUS} />
         </group>
       )}
-
     </group>
-
   );
 });
-useGLTF.preload('/orionspacecraft.glb');
+useGLTF.preload("/orionspacecraft.glb");
 
 // --- SUN ---
 const FlareMarker = ({ flare, sunRef }) => {
-  const [hovered, setHover] = useState(false)
+  const [hovered, setHover] = useState(false);
   const setShouldRun = useStore((s) => s.setShouldRun);
   const flarePaused = useRef(false);
-  const meshRef = useRef()
+  const meshRef = useRef();
 
-  const { curve, startPoint, thickness, baseSize, lightPower, emissivePow } = useMemo(() => {
-    const start = convertCoords(flare.lat, flare.lng, SUN_RADIUS + 10)
+  const { curve, startPoint, thickness, baseSize, lightPower, emissivePow } =
+    useMemo(() => {
+      const start = convertCoords(flare.lat, flare.lng, SUN_RADIUS + 10);
 
-    const midHeight = SUN_RADIUS + 20 + (flare.size * 50)
-    const mid = convertCoords(flare.lat + 0.5, flare.lng + 0.5, midHeight)
-    const end = convertCoords(flare.lat + 1, flare.lng + 1, SUN_RADIUS + 20)
+      const midHeight = SUN_RADIUS + 20 + flare.size * 50;
+      const mid = convertCoords(flare.lat + 0.5, flare.lng + 0.5, midHeight);
+      const end = convertCoords(flare.lat + 1, flare.lng + 1, SUN_RADIUS + 20);
 
-    return {
-      curve: new THREE.QuadraticBezierCurve3(start, mid, end),
-      startPoint: start,
-      baseSize: flare.size * 15,
-      thickness: flare.size * 8,
-      lightPower: Math.pow(flare.size, 2),
-      emissivePow: 4 + flare.size * 2
-    }
-  }, [flare])
+      return {
+        curve: new THREE.QuadraticBezierCurve3(start, mid, end),
+        startPoint: start,
+        baseSize: flare.size * 15,
+        thickness: flare.size * 8,
+        lightPower: Math.pow(flare.size, 2),
+        emissivePow: 4 + flare.size * 2,
+      };
+    }, [flare]);
 
   useFrame((state) => {
-    if (!meshRef.current) return
+    if (!meshRef.current) return;
 
-    const t = state.clock.getElapsedTime()
-    const pulseSpeed = flare.class.startsWith('X') ? 8 : flare.class.startsWith('M') ? 4 : 2
+    const t = state.clock.getElapsedTime();
+    const pulseSpeed = flare.class.startsWith("X")
+      ? 8
+      : flare.class.startsWith("M")
+        ? 4
+        : 2;
     // dynamic glow
-    meshRef.current.material.emissiveIntensity = 2 + Math.sin(t * pulseSpeed) * 1.5
-  })
+    meshRef.current.material.emissiveIntensity =
+      2 + Math.sin(t * pulseSpeed) * 1.5;
+  });
 
   // hover calculation to only be able to hover when flare is in "front" relative to the camera
   const handlePointerOver = (e) => {
@@ -340,7 +243,7 @@ const FlareMarker = ({ flare, sunRef }) => {
       setShouldRun(false);
       flarePaused.current = true;
     }
-    document.body.style.cursor = 'pointer';
+    document.body.style.cursor = "pointer";
   };
 
   return (
@@ -360,7 +263,8 @@ const FlareMarker = ({ flare, sunRef }) => {
         </mesh>
 
         {/* flare halo */}
-        <mesh position={startPoint}
+        <mesh
+          position={startPoint}
           data-testid="flare-halo"
           onPointerOver={handlePointerOver}
           onPointerOut={() => {
@@ -369,10 +273,10 @@ const FlareMarker = ({ flare, sunRef }) => {
               setShouldRun(true);
               flarePaused.current = false;
             }
-            document.body.style.cursor = 'auto';
+            document.body.style.cursor = "auto";
           }}
-
-          onPointerMove={(e) => e.stopPropagation()}>
+          onPointerMove={(e) => e.stopPropagation()}
+        >
           <sphereGeometry args={[flare.size * 50, 32, 32]} />
           <meshBasicMaterial
             color={flare.color}
@@ -394,34 +298,36 @@ const FlareMarker = ({ flare, sunRef }) => {
           position={startPoint}
           color="#f98029"
           distance={flare.size * 2000}
-
           intensity={lightPower * 5000000}
           decay={2}
         />
       </group>
       {hovered && (
-        <Html position={startPoint} center style={{ pointerEvents: 'none' }}>
-          <div style={{
-            background: 'rgba(0,0,0,0.9)',
-            color: 'white',
-            padding: '6px 10px',
-            borderRadius: '4px',
-            border: `2px solid ${flare.color}`,
-            pointerEvents: 'none',
-            marginTop: '-60px',
-            boxShadow: `0 0 15px ${flare.color}`
-          }}>
-            <strong style={{ color: flare.color }}>{flare.class} Class</strong><br />
-            {new Date(flare.peakTime).toLocaleDateString('en-GB')}
+        <Html position={startPoint} center style={{ pointerEvents: "none" }}>
+          <div
+            style={{
+              background: "rgba(0,0,0,0.9)",
+              color: "white",
+              padding: "6px 10px",
+              borderRadius: "4px",
+              border: `2px solid ${flare.color}`,
+              pointerEvents: "none",
+              marginTop: "-60px",
+              boxShadow: `0 0 15px ${flare.color}`,
+            }}
+          >
+            <strong style={{ color: flare.color }}>{flare.class} Class</strong>
+            <br />
+            {new Date(flare.peakTime).toLocaleDateString("en-GB")}
           </div>
         </Html>
       )}
     </>
-  )
-}
+  );
+};
 
 const Sun = forwardRef(({ curve }, ref) => {
-  const [flares, setFlares] = useState(MOCK_FLARES)
+  const [flares, setFlares] = useState(MOCK_FLARES);
   const flareGroupRef = useRef();
   const texture = useTexture(sunColor);
 
@@ -440,8 +346,8 @@ const Sun = forwardRef(({ curve }, ref) => {
         console.warn("Solar API unreachable. Falling back to local data.", err);
       }
     };
-    fetchFlares()
-  }, [])
+    fetchFlares();
+  }, []);
 
   useFrame(() => {
     const { progress } = useStore.getState();
@@ -460,7 +366,7 @@ const Sun = forwardRef(({ curve }, ref) => {
 
       ref.current.rotation.y = currentRotation;
       if (flareGroupRef.current) {
-        flareGroupRef.current.rotation.y = currentRotation;;
+        flareGroupRef.current.rotation.y = currentRotation;
       }
     }
   });
@@ -477,7 +383,7 @@ const Sun = forwardRef(({ curve }, ref) => {
         <sphereGeometry args={[SUN_RADIUS, 64, 64]} />
         <meshStandardMaterial
           map={texture}
-          emissive={new THREE.Color('#ffaa00')}
+          emissive={new THREE.Color("#ffaa00")}
           emissiveIntensity={2}
           emissiveMap={texture}
           transparent={false}
@@ -494,11 +400,12 @@ const Sun = forwardRef(({ curve }, ref) => {
         </group>
       )}
       <group ref={flareGroupRef}>
-        {flares.map(flare => (
+        {flares.map((flare) => (
           <FlareMarker key={flare.id} flare={flare} sunRef={ref} />
         ))}
       </group>
     </group>
   );
 });
+
 export { Moon, Earth, Orion, Sun, FlareMarker };
