@@ -294,7 +294,6 @@ const FocusMenu = ({ focusTarget, setFocusTarget, centerOrigin, setCenterOrigin 
 
   const isOrbitLoading = useStore(s => s.isOrbitLoading);
   const [pendingOrigin, setPendingOrigin] = useState(null);
-  // const setIsOrbitLoading = useStore((s) => s.setIsOrbitLoading);
 
   const handleCenterChange = (name) => {
     setPendingOrigin(name);
@@ -312,31 +311,39 @@ const FocusMenu = ({ focusTarget, setFocusTarget, centerOrigin, setCenterOrigin 
           <div className="h-[1px] w-full bg-blue-500/30 my-1" />
         </div>
         {/* buttons group */}
-        <div className="flex flex-row md:flex-col gap-2 md:px-0 overflow-x-auto custom-scrollbar">
-          {targets.map(name => (
-            <button
-              key={name}
-              onClick={() => setFocusTarget(name)}
-              data-testid={`focus-${name}`}
-              className={`
+        <div className="flex flex-row items-stretch gap-2">
+          {/* small screen side label */}
+          <div className="md:hidden flex items-center bg-blue-500/10 border-l border-blue-500/40 px-1 py-2">
+            <span className="[writing-mode:vertical-lr] rotate-180 font-mono text-[8px] text-blue-400/80 tracking-tighter uppercase">
+              Focus
+            </span>
+          </div>
+          <div className="flex flex-row md:flex-col gap-2 md:px-0 overflow-x-auto custom-scrollbar">
+            {targets.map(name => (
+              <button
+                key={name}
+                onClick={() => setFocusTarget(name)}
+                data-testid={`focus-${name}`}
+                className={`
                 flex-shrink-0 relative px-4 py-2 text-left transition-all duration-300 group cursor-pointer
                 font-mono text-[10px] md:text-[12px] tracking-[0.2em] uppercase
                 border-b-2 md:border-b-0 md:border-l-2
                 ${focusTarget === name
-                  ? 'bg-blue-500/20 border-blue-400 text-blue-400 shadow-[0_0_15px_rgba(96,165,250,0.1)]'
-                  : 'bg-black/40 border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-300'
-                }
+                    ? 'bg-blue-500/20 border-blue-400 text-blue-400 shadow-[0_0_15px_rgba(96,165,250,0.1)]'
+                    : 'bg-black/40 border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-300'
+                  }
               `}
-            >
-              <span className="relative z-10">
-                {focusTarget === name ? `> ${name}` : name}
-              </span>
-              {/* small corner detail */}
-              <div className={`
+              >
+                <span className="relative z-10">
+                  {focusTarget === name ? `> ${name}` : name}
+                </span>
+                {/* small corner detail */}
+                <div className={`
                 absolute top-0 right-0 w-1 h-1 border-t border-r transition-opacity 
                 ${focusTarget === name ? 'border-blue-400 opacity-100' : 'border-white/20 opacity-0 group-hover:opacity-100'}`} />
-            </button>
-          ))}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -349,46 +356,54 @@ const FocusMenu = ({ focusTarget, setFocusTarget, centerOrigin, setCenterOrigin 
           <div className="h-[1px] w-full bg-amber-500/30 my-1" />
         </div>
         {/* buttons group */}
-        <div className="flex flex-row md:flex-col gap-2 md:px-0 overflow-x-auto custom-scrollbar">
-          {origins.map(name => {
-            const isActive = centerOrigin === name;
-            const isWaiting = isOrbitLoading && pendingOrigin === name;
-            return (
-              <button
-                key={name}
-                data-testid={`center-${name}`}
-                disabled={isOrbitLoading}
-                onClick={() => handleCenterChange(name)}
-                className={`
+        <div className="flex flex-row items-stretch gap-2">
+          {/* small screen side label */}
+          <div className="md:hidden flex items-center bg-amber-500/10 border-l border-amber-500/40 px-1 py-2">
+            <span className="[writing-mode:vertical-lr] rotate-180 font-mono text-[8px] text-amber-500/80 tracking-tighter uppercase">
+              Center
+            </span>
+          </div>
+          <div className="flex flex-row md:flex-col gap-2 md:px-0 overflow-x-auto custom-scrollbar">
+            {origins.map(name => {
+              const isActive = centerOrigin === name;
+              const isWaiting = isOrbitLoading && pendingOrigin === name;
+              return (
+                <button
+                  key={name}
+                  data-testid={`center-${name}`}
+                  disabled={isOrbitLoading}
+                  onClick={() => handleCenterChange(name)}
+                  className={`
                 flex-shrink-0 relative px-4 py-2 text-left transition-all duration-300 group
                 font-mono text-[9px] md:text-[11px] tracking-[0.2em] uppercase
                 border-b-2 md:border-b-0 md:border-l-2
                 ${isActive
-                    ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
-                    : 'bg-black/40 border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-300'
-                  }
+                      ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.1)]'
+                      : 'bg-black/40 border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-300'
+                    }
                 ${isOrbitLoading ? 'cursor-wait' : 'hover:bg-blue-500/20 cursor-pointer'}
                 ${isOrbitLoading && !isWaiting ? 'opacity-30' : 'opacity-100'}
               `}
-              >
-                <span className="relative z-10 flex items-center justify-between">
-                  {isWaiting ? (
-                    <span className="text-amber-400">
-                      <LoadingButtonSpinner />
-                    </span>
-                  ) : (
-                    <span>{isActive ? `[ ${name} ]` : name}</span>
-                  )}
-                </span>
-                {/* small corner detail */}
-                <div className={`
+                >
+                  <span className="relative z-10 flex items-center justify-between">
+                    {isWaiting ? (
+                      <span className="text-amber-400">
+                        <LoadingButtonSpinner />
+                      </span>
+                    ) : (
+                      <span>{isActive ? `[ ${name} ]` : name}</span>
+                    )}
+                  </span>
+                  {/* small corner detail */}
+                  <div className={`
                   absolute w-1 h-1 top-0 right-0 border-t border-r transition-opacity
                   md:top-auto md:bottom-0 md:border-t-0 md:border-b md:border-r  
                   ${isActive ? 'border-amber-500 opacity-100' : 'border-white/20 opacity-0 group-hover:opacity-100'}
                 `} />
-              </button>
-            );
-          })}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
@@ -621,11 +636,11 @@ const SearchGallery = ({ allImages }) => {
 };
 
 const Settings = () => {
-  const { showLabels, showTrajectories, toggleLabels, toggleTrajectories } = useStore();
+  const { showLabels, showTrajectories, toggleLabels, toggleTrajectories, speed, setSpeed, resetSpeed } = useStore();
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-   <div className="relative pointer-events-auto">
+    <div className="relative pointer-events-auto">
       {/* open settings button */}
       <button
         data-testid="settings-button"
@@ -636,29 +651,58 @@ const Settings = () => {
 
       {/* menu */}
       {isOpen && (
-        <div className="absolute z-[200] top-full right-0 mt-2 p-4 bg-black/90 border border-white/20 rounded-lg w-64 shadow-2xl animate-in fade-in zoom-in-95 origin-top-right">
-          <h3 className="text-white font-mono text-[10px] uppercase tracking-widest mb-4 opacity-50">Visual Settings</h3>
-          <div className="space-y-4">
-            {/* label toggle */}
-            <div className="flex justify-between items-center">
-              <span className="text-white text-sm font-medium">Object Labels</span>
-              <button
-                onClick={toggleLabels}
-                className={`w-10 h-5 rounded-full transition-colors relative ${showLabels ? 'bg-blue-500' : 'bg-gray-600'}`}
-              >
-                <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${showLabels ? 'left-6' : 'left-1'}`} />
-              </button>
+         <div className="absolute z-[200] top-full right-0 mt-2 p-4 bg-black/90 border border-white/20 rounded-lg w-64 xl:w-75 shadow-2xl animate-in fade-in zoom-in-95 origin-top-right">
+       
+          <h3 className="text-blue-400 font-mono text-[10px] md:text-[11px] uppercase tracking-[0.3em] mb-4 opacity-70">
+            Control Deck
+          </h3>
+
+          <div className="space-y-5">
+            {/* speed section */}
+            <div className="flex flex-col gap-2">
+              <div className="flex justify-between items-center">
+                <span className="text-white text-[10px] md:text-[11px] font-mono uppercase">Time Warp</span>
+                <div className="flex items-center gap-2">
+                  {/* reset to default speed */}
+                  <button onClick={resetSpeed}
+                    className={`text-[8px] md:text-[10px] font-mono px-1.5 py-0.5 rounded border transition-all ${speed !== 0.008
+                      ? 'border-amber-500/50 text-amber-500 hover:bg-amber-500/10 cursor-pointer'
+                      : 'border-slate-800 text-slate-700 cursor-default'
+                      }`}>
+                    RESET
+                  </button>
+                  <span className="text-blue-400 font-mono text-[10px] md:md:text-[11px]">{(speed / 0.008).toFixed(1)}x</span>
+                </div>
+              </div>
+              <input
+                type="range" min="0.001" max="0.04" step="0.001"
+                value={speed}
+                onChange={(e) => setSpeed(parseFloat(e.target.value))}
+                className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+              />
+              <div className="flex justify-between text-[8px] md:md:text-[9px] font-mono text-slate-500 uppercase tracking-tighter">
+                <span>Slow</span>
+                <span>Normal</span>
+                <span>Fast</span>
+              </div>
             </div>
 
-            {/* trajectory toggle */}
-            <div className="flex justify-between items-center">
-              <span className="text-white text-sm font-medium">Orbital Paths</span>
-              <button
-                onClick={toggleTrajectories}
-                className={`w-10 h-5 rounded-full transition-colors relative ${showTrajectories ? 'bg-blue-500' : 'bg-gray-600'}`}
-              >
-                <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${showTrajectories ? 'left-6' : 'left-1'}`} />
-              </button>
+            <div className="h-[px] w-full bg-white/5" />
+            {/* label toggle */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center whitespace-nowrap">
+                <span className="text-slate-300 text-[10px] md:text-[11px] font-mono uppercase">Labels</span>
+                <button onClick={toggleLabels} className={`w-8 h-4 rounded-full transition-colors relative ${showLabels ? 'bg-blue-500' : 'bg-slate-700'}`}>
+                  <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${showLabels ? 'left-4.5' : 'left-0.5'}`} />
+                </button>
+              </div>
+              {/* trajectory toggle */}
+              <div className="flex justify-between items-center whitespace-nowrap">
+                <span className="text-slate-300 text-[10px] md:text-[11px] font-mono uppercase">Trajectories</span>
+                <button onClick={toggleTrajectories} className={`w-8 h-4 rounded-full transition-colors relative ${showTrajectories ? 'bg-blue-500' : 'bg-slate-700'}`}>
+                  <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${showTrajectories ? 'left-4.5' : 'left-0.5'}`} />
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -132,11 +132,11 @@ describe('Frontend UI Tests', () => {
         const settingsBtn = await screen.findByTestId('settings-button');
         fireEvent.click(settingsBtn);
 
-        const menu = await screen.findByText(/Visual Settings/i);
+        const menu = await screen.findByText(/Control Deck/i);
         expect(menu).toBeInTheDocument();
-        const objLabel = await screen.findByText(/Object Labels/i);
+        const objLabel = await screen.findByText(/Labels/i);
         expect(objLabel).toBeInTheDocument();
-        const orbitalPaths = await screen.findByText(/Orbital Paths/i);
+        const orbitalPaths = await screen.findByText(/Trajectories/i);
         expect(orbitalPaths).toBeInTheDocument();
     });
 

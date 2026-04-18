@@ -84,7 +84,7 @@ describe('Sun Component API', () => {
     });
 
     it('falls back to mock data if API fails', async () => {
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+        const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
         axios.get.mockRejectedValue(new Error("Network Error"));
 
         render(<Sun />);

@@ -1,9 +1,11 @@
 import { create } from 'zustand'
 
+const DEFAULT_SPEED = 0.008;
+
 export const useStore = create((set) => ({
   progress: 0,
   shouldRun: true,
-  speed: 0.008,
+  speed: DEFAULT_SPEED,
   isGalleryOpen: false,
   isSearchOpen: false,
   globalSearchQuery: "",
@@ -24,4 +26,6 @@ export const useStore = create((set) => ({
   setIsOrbitLoading: (val) => set({ isOrbitLoading: val }),
   toggleLabels: () => set((state) => ({ showLabels: !state.showLabels })),
   toggleTrajectories: () => set((state) => ({ showTrajectories: !state.showTrajectories })),
+  setSpeed: (val) => set({ speed: val }),
+  resetSpeed: () => set({ speed: DEFAULT_SPEED }),
 }))
