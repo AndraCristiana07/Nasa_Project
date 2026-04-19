@@ -106,7 +106,7 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [isDataLoaded]);
 
-  const handleTimelineClick = async (m) => {
+  const navigateToDay = async (m) => {
     setSelectedDay(m.day);
     setProgress((m.day - 1) / 10);
 
@@ -227,10 +227,7 @@ export default function App() {
           </div>
 
           <MissionControl milestones={milestones} />
-          <Timeline
-            milestones={milestones}
-            onTimelineClick={handleTimelineClick}
-          />
+          <Timeline milestones={milestones} onTimelineClick={navigateToDay} />
           <MilestoneTracker />
         </>
       )}
@@ -242,7 +239,7 @@ export default function App() {
           onClose={handleCloseGallery}
           isLoadingGallery={isLoadingGallery}
           selectedDay={selectedDay}
-          onDaySelect={handleTimelineClick}
+          onDaySelect={navigateToDay}
           milestones={milestones}
         />
       )}

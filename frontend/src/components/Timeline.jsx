@@ -1,6 +1,14 @@
 import { useStore } from "../store";
 
 export const Timeline = ({ milestones, onTimelineClick }) => {
+  const setIsManualNav = useStore((s) => s.setIsManualNav);
+
+  const handleTimelineClick = (m) => {
+    // set manual nav so that the popup doesn't show on modal exit
+    setIsManualNav(true);
+    onTimelineClick(m);
+  };
+
   return (
     <div
       className="fixed flex flex-col pointer-events-none
@@ -27,7 +35,7 @@ export const Timeline = ({ milestones, onTimelineClick }) => {
           <button
             key={idx}
             onClick={() => {
-              onTimelineClick(m);
+              handleTimelineClick(m);
               useStore.getState().setIsGalleryOpen(true);
             }}
             className=" flex-shrink-0 flex group relative transition-all 

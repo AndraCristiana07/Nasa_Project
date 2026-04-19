@@ -9,10 +9,20 @@ const MilestoneTracker = () => {
     setHasReachedMilestone,
     setShowMilestonePopUp,
     milestonesEnabled,
+    isManualNav,
+    setIsManualNav,
   } = useStore();
 
   useEffect(() => {
     if (!milestonesEnabled) return;
+
+    // if user mannually selected day6 in timeline, reset the flag after and don't show the popup
+    if (isManualNav) {
+      if (progress < 0.5 || progress > 0.51) {
+        setIsManualNav(false);
+      }
+      return;
+    }
     if (progress >= 0.5 && progress < 0.51 && !hasReachedMilestone) {
       setShouldRun(false); // stop the mission
       setHasReachedMilestone(true);
@@ -30,6 +40,8 @@ const MilestoneTracker = () => {
     setHasReachedMilestone,
     setShowMilestonePopUp,
     milestonesEnabled,
+    isManualNav,
+    setIsManualNav,
   ]);
 
   return null;
@@ -45,7 +57,8 @@ const PopUp = () => {
   return (
     <div
       className="fixed z-[100000000] inset-0 flex items-center 
-        justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-500"
+        justify-center bg-black/40 backdrop-blur-sm animate-in 
+        fade-in duration-500"
     >
       <div
         className="max-w-md p-6 bg-slate-900 border-2 border-amber-500/50 
