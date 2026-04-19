@@ -34,6 +34,8 @@ export default function App() {
   const setProgress = useStore((s) => s.setProgress);
 
   const [galleryData, setGalleryData] = useState(null);
+  const [galleryCache, setGalleryCache] = useState({});
+
   const [isLoadingGallery, setIsLoadingGallery] = useState(false);
 
   const isGalleryOpen = useStore((s) => s.isGalleryOpen);
@@ -106,13 +108,22 @@ export default function App() {
 
   const handleTimelineClick = async (m) => {
     setSelectedDay(m.day);
+    setProgress((m.day - 1) / 10);
+
+    if (galleryCache[m.day]) {
+      // if it already is in cache, use it
+      setGalleryData(galleryCache[m.day]);
+      return;
+    }
+
     setGalleryData(null);
     setIsLoadingGallery(true);
-    setProgress((m.day - 1) / 10);
 
     try {
       const res = await axios.get(`${BACKEND_URL}/api/mission/day/${m.day}`);
-      setGalleryData(res.data);
+      const data = res.data;
+      setGalleryData(data);
+      setGalleryCache((prev) => ({ ...prev, [m.day]: data }));
     } catch (err) {
       console.error(err);
     } finally {
@@ -123,7 +134,6 @@ export default function App() {
   const handleCloseGallery = () => {
     setSelectedDay(null);
     setGalleryData(null);
-
     useStore.getState().setIsGalleryOpen(false);
   };
 
