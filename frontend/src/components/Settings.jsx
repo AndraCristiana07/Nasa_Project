@@ -74,7 +74,7 @@ export const Settings = () => {
                     onClick={resetSpeed}
                     className={`text-[8px] md:text-[10px] font-mono px-1.5 
                       py-0.5 rounded border transition-all ${
-                        speed !== 0.008
+                        speed !== 0.03
                           ? "border-amber-500/50 text-amber-500 hover:bg-amber-500/10 cursor-pointer"
                           : "border-slate-800 text-slate-700 cursor-default"
                       }`}
@@ -82,14 +82,14 @@ export const Settings = () => {
                     RESET
                   </button>
                   <span className="text-blue-400 font-mono text-[10px] md:md:text-[11px]">
-                    {(speed / 0.008).toFixed(1)}x
+                    {(speed / 0.03).toFixed(1)}x
                   </span>
                 </div>
               </div>
               <input
                 type="range"
                 min="0.001"
-                max="0.04"
+                max="0.06"
                 step="0.001"
                 value={speed}
                 onChange={(e) => setSpeed(parseFloat(e.target.value))}

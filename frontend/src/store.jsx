@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-const DEFAULT_SPEED = 0.008;
+const DEFAULT_SPEED = 0.03;
 const DEFAULT_STAR_COUNT = 50000;
 export const useStore = create((set) => ({
   progress: 0,
