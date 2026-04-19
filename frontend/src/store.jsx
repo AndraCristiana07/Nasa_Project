@@ -12,7 +12,8 @@ export const useStore = create((set) => ({
   isOrbitLoading: false,
   showLabels: true,
   showTrajectories: true,
-
+  hasReachedMilestone: false,
+  showMilestonePopUp: false,
   advance: (dt) =>
     set((state) => {
       return {
@@ -32,4 +33,6 @@ export const useStore = create((set) => ({
     set((state) => ({ showTrajectories: !state.showTrajectories })),
   setSpeed: (val) => set({ speed: val }),
   resetSpeed: () => set({ speed: DEFAULT_SPEED }),
+  setHasReachedMilestone: (val) => set({ hasReachedMilestone: val }),
+  setShowMilestonePopUp: (val) => set({ showMilestonePopUp: val }),
 }));

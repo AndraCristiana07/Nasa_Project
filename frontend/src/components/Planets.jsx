@@ -15,7 +15,7 @@ const MOON_RADIUS = 0.1;
 const ORION_RADIUS = 0.015;
 const EARTH_RADIUS = 0.3;
 
-const PlanetLabel = ({ name, color, radius }) => {
+const PlanetLabel = ({ planetName, color, radius }) => {
   const colors = {
     blue: "text-blue-500 border-blue-500/50 ",
     red: "text-red-500 border-red-500/50",
@@ -35,6 +35,9 @@ const PlanetLabel = ({ name, color, radius }) => {
 
     const dist = camera.position.distanceTo(worldPos);
 
+    const zIdx = Math.round(10000 - dist);
+    domRef.current.style.zIndex = zIdx;
+
     // hide label if camera is too close
     const isTooClose = dist < radius * 8;
     domRef.current.style.opacity = isTooClose ? "0" : "1";
@@ -44,15 +47,14 @@ const PlanetLabel = ({ name, color, radius }) => {
   return (
     <group ref={groupRef}>
       <Html
+        occlude
+        name="planet-label-html"
         center
-        zIndexRange={[100, 0]}
-        occlude="blending"
         pointerEvents="none"
         style={{
           pointerEvents: "none",
           whiteSpace: "nowrap",
           transition: "opacity 0.5s",
-          zIndex: 1000,
         }}
       >
         <div ref={domRef} className="flex flex-col items-center group">
@@ -63,7 +65,7 @@ const PlanetLabel = ({ name, color, radius }) => {
           font-mono text-[10px] uppercase tracking-widest
         `}
           >
-            {name}
+            {planetName}
           </div>
         </div>
       </Html>
@@ -102,7 +104,7 @@ const Earth = forwardRef(({ curve }, ref) => {
       </mesh>
       {showLabels && (
         <group position={[0, EARTH_RADIUS * 1.5, 0]}>
-          <PlanetLabel name="Earth" color="blue" radius={EARTH_RADIUS} />
+          <PlanetLabel planetName="Earth" color="blue" radius={EARTH_RADIUS} />
         </group>
       )}
     </group>
@@ -136,7 +138,7 @@ const Moon = forwardRef(({ curve }, ref) => {
       </mesh>
       {showLabels && (
         <group position={[0, MOON_RADIUS * 1.5, 0]}>
-          <PlanetLabel name="Moon" color="yellow" radius={MOON_RADIUS} />
+          <PlanetLabel planetName="Moon" color="yellow" radius={MOON_RADIUS} />
         </group>
       )}
     </group>
@@ -180,7 +182,7 @@ const Orion = forwardRef(({ curve }, ref) => {
       </mesh>
       {showLabels && (
         <group position={[0, ORION_RADIUS * 4, 0]}>
-          <PlanetLabel name="Orion" color="red" radius={ORION_RADIUS} />
+          <PlanetLabel planetName="Orion" color="red" radius={ORION_RADIUS} />
         </group>
       )}
     </group>
@@ -396,7 +398,7 @@ const Sun = forwardRef(({ curve }, ref) => {
 
       {showLabels && (
         <group position={[0, SUN_RADIUS + 5000, 0]}>
-          <PlanetLabel name="Sun" color="purple" radius={SUN_RADIUS} />
+          <PlanetLabel planetName="Sun" color="purple" radius={SUN_RADIUS} />
         </group>
       )}
       <group ref={flareGroupRef}>

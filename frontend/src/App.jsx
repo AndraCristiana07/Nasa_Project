@@ -12,6 +12,7 @@ import { FocusMenu } from "./components/FocusMenu";
 import { Timeline } from "./components/Timeline";
 import { Gallery } from "./components/Gallery";
 import { SearchBar, SearchGallery } from "./components/Search";
+import { MilestoneTracker, PopUp } from "./components/MilestoneTracker";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
@@ -219,6 +220,7 @@ export default function App() {
             milestones={milestones}
             onTimelineClick={handleTimelineClick}
           />
+          <MilestoneTracker />
         </>
       )}
       {/* gallery*/}
@@ -232,6 +234,7 @@ export default function App() {
         />
       )}
       <SearchGallery allImages={fullArchive} />
+      <PopUp />
     </div>
   );
 }
