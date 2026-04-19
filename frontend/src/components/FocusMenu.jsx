@@ -134,7 +134,7 @@ export const FocusMenu = ({
                   onClick={() => handleCenterChange(name)}
                   className={`
                     flex-shrink-0 relative px-4 py-2 text-left transition-all 
-                    duration-300 group font-mono text-[9px] md:text-[11px] 
+                    duration-300 group font-mono text-[10px] md:text-[12px] 
                     tracking-[0.2em] uppercase
                     border-b-2 md:border-b-0 md:border-l-2
                 ${

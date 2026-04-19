@@ -193,10 +193,10 @@ export const Settings = () => {
                     className="text-slate-300 text-[10px] md:text-[11px] 
                       font-mono uppercase"
                   >
-                    Mission Alerts
+                    Mission Alert
                   </span>
                   <span className="text-[8px] text-slate-500 font-mono uppercase">
-                    Auto-pause on special milestones
+                    Auto-pause on special milestone
                   </span>
                 </div>
                 <button
