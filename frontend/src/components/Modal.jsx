@@ -8,6 +8,7 @@ export const Modal = ({
   children,
   isEmpty,
   emptyMessage,
+  headerAction,
 }) => {
   // pressing esc to close modal
   useEffect(() => {
@@ -57,6 +58,12 @@ export const Modal = ({
             ✕
           </button>
         </div>
+        {/* for fixed header in gallery */}
+        {headerAction && (
+          <div className="shrink-0 border-b border-white/5 bg-slate-950/50">
+            {headerAction}
+          </div>
+        )}
 
         {/* content */}
         <div
