@@ -67,7 +67,7 @@ export default function App() {
         setFullArchive(archiveRes.data);
         setMilestones(missionRes.data.milestones);
 
-        // fetch trajectories with a tiny stagger or sequentially
+        // fetch trajectories
         const trajectoryKeys = ["artemis", "moon", "earth", "sun"];
         const origin = centerOrigin.toLowerCase();
         const newTrajectories = {};
@@ -105,7 +105,6 @@ export default function App() {
   }, [isDataLoaded]);
 
   const handleTimelineClick = async (m) => {
-    // setShouldRun(false);
     setSelectedDay(m.day);
     setGalleryData(null);
     setIsLoadingGallery(true);
@@ -233,6 +232,8 @@ export default function App() {
           onClose={handleCloseGallery}
           isLoadingGallery={isLoadingGallery}
           selectedDay={selectedDay}
+          onDaySelect={handleTimelineClick}
+          milestones={milestones}
         />
       )}
       <SearchGallery allImages={fullArchive} />
