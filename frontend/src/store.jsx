@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 const DEFAULT_SPEED = 0.008;
-
+const DEFAULT_STAR_COUNT = 50000;
 export const useStore = create((set) => ({
   progress: 0,
   shouldRun: true,
@@ -14,6 +14,7 @@ export const useStore = create((set) => ({
   showTrajectories: true,
   hasReachedMilestone: false,
   showMilestonePopUp: false,
+  starCount: DEFAULT_STAR_COUNT,
   advance: (dt) =>
     set((state) => {
       return {
@@ -35,4 +36,6 @@ export const useStore = create((set) => ({
   resetSpeed: () => set({ speed: DEFAULT_SPEED }),
   setHasReachedMilestone: (val) => set({ hasReachedMilestone: val }),
   setShowMilestonePopUp: (val) => set({ showMilestonePopUp: val }),
+  setStarCount: (val) => set({ starCount: val }),
+  resetStarCount: () => set({ starCount: DEFAULT_STAR_COUNT }),
 }));

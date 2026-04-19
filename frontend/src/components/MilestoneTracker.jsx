@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useStore } from "../store";
 
 const MilestoneTracker = () => {
@@ -40,9 +40,18 @@ const PopUp = () => {
   if (!showPopUp) return null;
 
   return (
-    <div className="fixed z-[100000000] inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-500">
-      <div className="max-w-md p-6 bg-slate-900 border-2 border-amber-500/50 rounded-xl shadow-[0_0_50px_rgba(245,158,11,0.2)] text-center">
-        <div className="text-amber-500 text-xs font-mono tracking-[0.3em] mb-2 uppercase">
+    <div
+      className="fixed z-[100000000] inset-0 flex items-center 
+        justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-500"
+    >
+      <div
+        className="max-w-md p-6 bg-slate-900 border-2 border-amber-500/50 
+          rounded-xl shadow-[0_0_50px_rgba(245,158,11,0.2)] text-center"
+      >
+        <div
+          className="text-amber-500 text-xs font-mono 
+            tracking-[0.3em] mb-2 uppercase"
+        >
           Historical Milestone Reached
         </div>
         <h2 className="text-white text-2xl font-bold mb-4 tracking-tight">
@@ -59,7 +68,9 @@ const PopUp = () => {
             setShouldRun(true); // start moving again
             setShowPopUp(false); // kill the popup until lap reset
           }}
-          className="px-8 py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold uppercase text-xs tracking-widest transition-all rounded-full cursor-pointer"
+          className="px-8 py-2 bg-amber-500 hover:bg-amber-400 text-black 
+            font-bold uppercase text-xs tracking-widest transition-all 
+            rounded-full cursor-pointer"
         >
           Continue Mission
         </button>

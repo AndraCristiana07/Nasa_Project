@@ -46,6 +46,8 @@ export default function App() {
 
   const setIsOrbitLoading = useStore((s) => s.setIsOrbitLoading);
 
+  const starCount = useStore((state) => state.starCount);
+
   useEffect(() => {
     if (isGalleryOpen || isSearchOpen) {
       setShouldRun(false);
@@ -178,7 +180,7 @@ export default function App() {
           far: 10000000, // to see objects further away
         }}
       >
-        <Stars radius={500000} depth={50} count={50000} factor={4} />
+        <Stars radius={500000} depth={50} count={starCount} factor={4} />
         <ambientLight intensity={0.2} />
         {isDataLoaded && (
           <ArtemisScene

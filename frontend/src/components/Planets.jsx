@@ -33,6 +33,17 @@ const PlanetLabel = ({ planetName, color, radius }) => {
     const worldPos = new THREE.Vector3();
     groupRef.current.getWorldPosition(worldPos);
 
+    const cameraDir = new THREE.Vector3();
+    camera.getWorldDirection(cameraDir);
+
+    const planetDir = new THREE.Vector3()
+      .copy(worldPos)
+      .sub(camera.position)
+      .normalize(); // dir from camera to planet
+
+    const dot = cameraDir.dot(planetDir);
+    const isBehindCamera = dot < 0; // negative -> behind the lens
+
     const dist = camera.position.distanceTo(worldPos);
 
     const zIdx = Math.round(10000 - dist);
@@ -42,6 +53,14 @@ const PlanetLabel = ({ planetName, color, radius }) => {
     const isTooClose = dist < radius * 8;
     domRef.current.style.opacity = isTooClose ? "0" : "1";
     domRef.current.style.visibility = isTooClose ? "hidden" : "visible";
+
+    if (isBehindCamera || isTooClose) {
+      domRef.current.style.opacity = "0";
+      domRef.current.style.visibility = "hidden";
+    } else {
+      domRef.current.style.opacity = "1";
+      domRef.current.style.visibility = "visible";
+    }
   });
 
   return (

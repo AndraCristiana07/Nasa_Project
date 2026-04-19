@@ -10,7 +10,17 @@ export const Settings = () => {
     speed,
     setSpeed,
     resetSpeed,
+    starCount,
+    setStarCount,
+    resetStarCount,
   } = useStore();
+
+  const options = [
+    { label: "Low", value: 10000 },
+    { label: "Med", value: 50000 },
+    { label: "High", value: 150000 },
+  ];
+
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -91,6 +101,46 @@ export const Settings = () => {
                 <span>Slow</span>
                 <span>Normal</span>
                 <span>Fast</span>
+              </div>
+
+              {/* star section*/}
+              <div className="flex flex-col gap-3">
+                <div className="flex justify-between items-center">
+                  <span
+                    className="text-[10px] md:text-[11px] text-slate-300 
+                      uppercase tracking-tighter font-mono"
+                  >
+                    Star Field Density
+                  </span>
+                  <button
+                    onClick={resetStarCount}
+                    className={`text-[8px] md:text-[10px] font-mono px-1.5 
+                      py-0.5 rounded border transition-all ${
+                        starCount !== 50000
+                          ? "border-amber-500/50 text-amber-500 hover:bg-amber-500/10 cursor-pointer"
+                          : "border-slate-800 text-slate-700 cursor-default"
+                      }`}
+                  >
+                    RESET
+                  </button>
+                </div>
+              </div>
+
+              {/* buttons to change star density */}
+              <div className="flex bg-white/5 p-1 rounded-md">
+                {options.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setStarCount(opt.value)}
+                    className={`flex-1 px-3 py-1 text-[10px] font-mono transition-all rounded ${
+                      starCount === opt.value
+                        ? "bg-blue-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                        : "text-slate-400 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
               </div>
             </div>
 

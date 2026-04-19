@@ -10,7 +10,7 @@ export const Modal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[150] flex justify-end pointer-events-none">
+    <div className="fixed inset-0 z-[99999999] flex justify-end pointer-events-none">
       <div
         className="absolute border border-blue-500/40 inset-0 pointer-events-auto"
         onClick={onClose}
