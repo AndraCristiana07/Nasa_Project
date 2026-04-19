@@ -49,7 +49,7 @@ const PopUp = () => {
     >
       <div
         className="max-w-md p-6 bg-slate-900 border-2 border-amber-500/50 
-          rounded-xl shadow-[0_0_50px_rgba(245,158,11,0.2)] text-center"
+          rounded-xl text-center"
       >
         <div
           className="text-amber-500 text-xs font-mono 
