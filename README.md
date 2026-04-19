@@ -40,6 +40,11 @@
 
 ### Core features
 
+The recent Artemis II Mission had some amazing historical achievements happen. In this project I showcase the Moon, Earth, Sun and the Orion spacecraft system from day 1 to day 10 of the mission.
+
+![page](./media/main.png)
+![page-mobile](./media/main-mobile.jpeg)
+
 1. 3D engine
    - Synchronized orbits: all bodies move along CatmullRomCurve3 trajectories made from the mission data ('https://ssd.jpl.nasa.gov/api/horizons.api')
    - Bodies rotation: all bodies also have a calculated self rotation
@@ -54,13 +59,20 @@
    - Seek bar: controls the global progress state in the mission. Dragging the bar recalculates the position of all celestial bodies and their rotations in real-time.
    - Progress telemetry: displays the mission completion percentage
    - Pause/Play button: starts and stops the temporal advancemnt of the progress and when paused, the CameraTracker remains active to be able to inspect the system more clearly at this current state
-   - Achievement popup: when reaching day6, a pop up appears explaining how this is the day when humanity reached the furthest point. This popup reappears once every progress loop
+   - Achievement popup: when reaching day6, a pop up appears explaining how this is the day when humanity reached the furthest point in space. This popup reappears once every progress loop. The popup won't show if you manually go to day6 from the timeline
    - The states of open modals, progress, pause, speed settings, etc. are stored in Zustand
 
-4. Mission Timeline and Gallery: on the right side for bigger screens and on the bottom above the mission control for smaller screens
-   - Chronological milestones: lists all 10 days of the mission and by clicking a milestone it will trigger a temporal jump to where the progress was in that day
-   - Gallery modal: clicking on a milestones also opens a sliding (side panel from the right on bigger screens and slide from the bottom and occupies all screen for smaller) modal that fetches and displays image data and descriptions for the specific mission day. Here there's also "read more/collapse" buttons to read the full description
-   - Autopause integration: opening thw gallery automatically triggers a syatem pause to ensure that the 3D environment remains fixes while the user looks at the data. It also stays pause after closing the modal, so that the user can inspect the system for that day as well without "chasing" the pause button
+   ![popup](./media/alert.png)
+
+4. Mission Timeline and Gallery: timeline is on the right side for bigger screens and on the bottom above the mission control for smaller screens
+   - Chronological milestones: a list of all 10 days of the mission and by clicking a milestone it will trigger a temporal jump to where the progress was in that day
+   - Gallery modal: clicking on a milestones also opens a sliding (side panel from the right on bigger screens and slide from the bottom for smaller) modal that displays image data and descriptions for the specific mission day. Here there's also "read more/collapse" buttons to read the full description. The data is fetched from the NASA Image and Video Library API ('https://images-api.nasa.gov') and filtered into a json with a script
+   - UI hiding: while modals are open, the unnecessary UI is hidden for a clearer view of the system
+   - Autopause integration: opening the gallery automatically triggers a system pause to ensure that the 3D environment remains fixed while the user looks at the data. While the modal is open, the user can still rotate or zoom in/out on the planets to see how it looks. After closing the modal, the progress is still paused to be able to look around the whole system
+
+   ![gallery](./media/gallery.png)
+
+   ![gallery-mobile](./media/gallery-mobile.jpeg)
 
 5. Focus and reference command buttons: in the top left corner as a column on bigger screens and as 2 rows for smaller
    - Camera focus function (blue):
@@ -106,8 +118,6 @@
 - ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
 
 - ![Express.js](https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB)
-
-- ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 
 - ![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)
 
