@@ -8,9 +8,11 @@ const MilestoneTracker = () => {
     hasReachedMilestone,
     setHasReachedMilestone,
     setShowMilestonePopUp,
+    milestonesEnabled,
   } = useStore();
 
   useEffect(() => {
+    if (!milestonesEnabled) return;
     if (progress >= 0.5 && progress < 0.51 && !hasReachedMilestone) {
       setShouldRun(false); // stop the mission
       setHasReachedMilestone(true);
@@ -27,6 +29,7 @@ const MilestoneTracker = () => {
     setShouldRun,
     setHasReachedMilestone,
     setShowMilestonePopUp,
+    milestonesEnabled,
   ]);
 
   return null;

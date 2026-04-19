@@ -15,6 +15,7 @@ export const useStore = create((set) => ({
   hasReachedMilestone: false,
   showMilestonePopUp: false,
   starCount: DEFAULT_STAR_COUNT,
+  milestonesEnabled: true,
   advance: (dt) =>
     set((state) => {
       return {
@@ -38,4 +39,5 @@ export const useStore = create((set) => ({
   setShowMilestonePopUp: (val) => set({ showMilestonePopUp: val }),
   setStarCount: (val) => set({ starCount: val }),
   resetStarCount: () => set({ starCount: DEFAULT_STAR_COUNT }),
+  setMilestonesEnabled: (val) => set({ milestonesEnabled: val }),
 }));

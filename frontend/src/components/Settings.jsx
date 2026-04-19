@@ -13,6 +13,8 @@ export const Settings = () => {
     starCount,
     setStarCount,
     resetStarCount,
+    milestonesEnabled,
+    setMilestonesEnabled,
   } = useStore();
 
   const options = [
@@ -181,6 +183,32 @@ export const Settings = () => {
                   <div
                     className={`absolute top-0.5 w-3 h-3 bg-white rounded-full
                       transition-all ${showTrajectories ? "left-4.5" : "left-0.5"}`}
+                  />
+                </button>
+              </div>
+              {/* alerts toggle */}
+              <div className="flex justify-between items-center whitespace-nowrap">
+                <div className="flex flex-col">
+                  <span
+                    className="text-slate-300 text-[10px] md:text-[11px] 
+                      font-mono uppercase"
+                  >
+                    Mission Alerts
+                  </span>
+                  <span className="text-[8px] text-slate-500 font-mono uppercase">
+                    Auto-pause on special milestones
+                  </span>
+                </div>
+                <button
+                  onClick={() => setMilestonesEnabled(!milestonesEnabled)}
+                  className={`w-8 h-4 rounded-full transition-colors relative ${
+                    milestonesEnabled ? "bg-amber-500" : "bg-slate-700"
+                  }`}
+                >
+                  <div
+                    className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${
+                      milestonesEnabled ? "left-4.5" : "left-0.5"
+                    }`}
                   />
                 </button>
               </div>

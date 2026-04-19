@@ -195,14 +195,14 @@ export default function App() {
         <>
           {/* top container*/}
           <div
-            className="fixed top-2 left-0 right-0 z-[100] px-4 xl:px-8 
+            className="fixed top-2 left-0 right-0 z-[99999998] px-4 xl:px-8 
               xl:top-6 flex flex-col xl:flex-row xl:justify-between 
               items-start pointer-events-none gap-4"
           >
             {/* search bar and settings: left on small screens, right on bigger */}
             <div
               className="flex flex-row items-center gap-2 
-                pointer-events-auto order-1 xl:order-2 self-start xl:self-auto"
+                pointer-events-auto order-1 xl:order-2 self-start xl:self-auto "
             >
               <SearchBar />
               <Settings />
