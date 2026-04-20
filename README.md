@@ -2,10 +2,10 @@
 <br />
 <div align="center">
 
-  <h3 align="center">Projevct ARTEMIS II</h3>
+  <h3 align="center">Project ARTEMIS II</h3>
 
   <p align="center">
-    A 3D visualization platform designed to track the trajectories of Earth, Moon and the Orion spacecraft during the recent Artemis II mission.
+    A 3D visualization platform about the Artemis II mission.
     <br />
    
   </p>
@@ -22,10 +22,8 @@
       </ul>
     </li>
     <li>
-      <a href="#getting-started">Getting Started</a>
       <ul>
         <li><a href="#installation-and-setup">Installation and Setup</a></li>
-        <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
     
@@ -36,14 +34,12 @@
 
 ## About The Project
 
-<!-- [![Product Name Screen Shot][product-screenshot]](https://example.com) -->
-
-### Core features
-
-The recent Artemis II Mission had some amazing historical achievements happen. In this project I showcase the Moon, Earth, Sun and the Orion spacecraft system from day 1 to day 10 of the mission.
+This project is a 3D dive into the Artemis II mission, tracking the Orion spacecraft within the Earth-Moon-Sun system from Day 1 to Day 10 of the mission.
 
 ![page](./media/main.png)
 ![page-mobile](./media/main-mobile.jpeg)
+
+### Core features
 
 1. 3D engine
    - Synchronized orbits: all bodies move along CatmullRomCurve3 trajectories made from the mission data ('https://ssd.jpl.nasa.gov/api/horizons.api')
@@ -53,10 +49,12 @@ The recent Artemis II Mission had some amazing historical achievements happen. I
 2. Solar Flares Telemetry
    - Data integration: fetches real solar flares that happened during the mission (X, M and C class flares) from the DONKI NASA API ('https://api.nasa.gov/DONKI/FLR')
    - Depth based interaction: used camera's perspective to determine if the Sun is "in the way" so the user cannot click on flares that are "behind". If distToFlare > distToSun + smallBuffer, the interaction is discarded
-   - Visual classification: flares are dinamically sizes based on their electromagnetic intensity
+   - Visual classification: flares are dynamically sizes based on their electromagnetic intensity. If the user hovers on any of them, they can see the classification and their peak day
+
+   ![solar flare](./media/solar-flare.png)
 
 3. Mission Control UI: located at the base of the viewport
-   - Seek bar: controls the global progress state in the mission. Dragging the bar recalculates the position of all celestial bodies and their rotations in real-time.
+   - Seek bar: controls the global progress state in the mission. Dragging the bar recalculates the position of all celestial bodies and their rotations in real-time
    - Progress telemetry: displays the mission completion percentage
    - Pause/Play button: starts and stops the temporal advancemnt of the progress and when paused, the CameraTracker remains active to be able to inspect the system more clearly at this current state
    - Achievement popup: when reaching day6, a pop up appears explaining how this is the day when humanity reached the furthest point in space. This popup reappears once every progress loop. The popup won't show if you manually go to day6 from the timeline
@@ -64,9 +62,9 @@ The recent Artemis II Mission had some amazing historical achievements happen. I
 
    ![popup](./media/alert.png)
 
-4. Mission Timeline and Gallery: timeline is on the right side for bigger screens and on the bottom above the mission control for smaller screens
+4. Mission Timeline and Gallery: timeline is on the right side for larger screens and on the bottom above the mission control for smaller screens
    - Chronological milestones: a list of all 10 days of the mission and by clicking a milestone it will trigger a temporal jump to where the progress was in that day
-   - Gallery modal: clicking on a milestones also opens a sliding (side panel from the right on bigger screens and slide from the bottom for smaller) modal that displays image data and descriptions for the specific mission day. Here there's also "read more/collapse" buttons to read the full description. The data is fetched from the NASA Image and Video Library API ('https://images-api.nasa.gov') and filtered into a json with a script
+   - Gallery modal: clicking on a milestones also opens a sliding (side panel from the right on larger screens and slide from the bottom for smaller) modal that displays image data and descriptions for the specific mission day. Here there's also "read more/collapse" buttons to read the full description. The data is fetched from the NASA Image and Video Library API ('https://images-api.nasa.gov') and filtered into a json with a script
    - UI hiding: while modals are open, the unnecessary UI is hidden for a clearer view of the system
    - Autopause integration: opening the gallery automatically triggers a system pause to ensure that the 3D environment remains fixed while the user looks at the data. While the modal is open, the user can still rotate or zoom in/out on the planets to see how it looks. After closing the modal, the progress is still paused to be able to look around the whole system
 
@@ -74,36 +72,43 @@ The recent Artemis II Mission had some amazing historical achievements happen. I
 
    ![gallery-mobile](./media/gallery-mobile.jpeg)
 
-5. Focus and reference command buttons: in the top left corner as a column on bigger screens and as 2 rows for smaller
+5. Focus and reference command buttons: in the top left corner as a column on larger screens and as 2 rows for smaller
    - Camera focus function (blue):
-     - Function: re-targets the OrbitalContrls to a specific entitiy (earth, moon, sun or the Orion spacecraft)
+     - Function: re-targets the OrbitalControls to a specific entity (earth, moon, sun or the Orion spacecraft)
      - Intelligent recentering: the system calculates a target specific offset based on the radius and the user's device size so that the camera doesn't go in the entity or is too far away
      - Displacement tracking: the focused entity's displacement is calculated and it's applied to the camera tracker so that it moves at the same time as it
      - Dynamic clipping: automatically adjusts the minDistance to allow close-up inspection without clipping through the entities
-   - Reference Frame / Center (orange):
+   - Reference Frame / Center (amber):
      - Function: shifts the coordinate origin of the entire system to one entity (Sun, Earth, Moon)
      - Relative motion recalculation: this "freezes" the selected body at the center while the other's trajectory is recalculated relative to it
      - Orbital visualization: by switching the center to the Earth, users can observe theMoon's orbital path. By switching to the Sun, the grand scale of the system transit becomes the focus
 
-6. Image search and metadata archive: search bar on the top left for smaller screens and top left for bigger
-   - Keyword filtering: it searches for the keywords from the image metadata from the NASA Images API
-   - Search overlay: like the mission gallery, the search opens a (side for bigger screens or bellow for smaller) sliding panel that presents filtered images with description
+6. Image search and metadata archive: search bar on the top left for smaller screens and top right for larger
+   - Keyword filtering: it searches for the keywords from the image metadata from the NASA Image and Video Library API
+   - Search overlay: like the mission gallery, the search opens a sliding panel that presents the filtered images with description
+
+     ![search](./media/search.png)
 
 7. Settings
-   - Entity labels: text overlays that track the bodies so it's easier to see where they are if the user zoom out. This can be turned off from the settings
-   - Visibility toggle: a settings overlay that allows the user to turn off the labels or the trajectories
-   - Speed adjustment: a slide where you can change the speed of the progress with a reset to default button
+   - Entity labels: text overlays that track the bodies so it's easier to see where they are if the user zooms out. This can be turned off from the settings
+   - Visibility toggle: a setting that allows the user to turn off the labels or the trajectories
+   - Speed adjustment: a slider where you can change the speed of the progress with a reset to default button
    - Star density: 3 value choices for low, medium and high count of stars shown with a reset to default button
    - Popup toggle: this stops any achievement milestones from showing up
+
+   ![settings](./media/settings.png)
+   ![settings-mobile](./media/settings-mobile.jpeg)
 
 8. Testing and Linters
    - Frontend Testing (Vitest & React Testing Library)
    - Backend Testing (Jest)
    - Both frontend and backend use ESlint for lintering
+   - There are also github actions for all the tests that are linked to Render and Vercel
 9. Other specifications
-   - The backend is hosted on Render and the frontend on Vercel
-   - When you open the frontend on Vercel it will take a while for the Render backend to wake up, as I have the free tier
+   - The backend is hosted on Render and the frontend on [Vercel](https://artemis-wine.vercel.app)
+   - When you open the frontend on Vercel it will take a while for the Render backend to wake up, as I have the free tier, but you can see a loading screen and a message about it
    - For the flares I also have some mock data, because for some days the NASA DONKI API didn't seem to work, but now it looks like it's working again. The mock has the actual data from those days
+   - The app is also scaled for different screen sizes using responsive utility variants from Tailwind
 
 ### Built With
 
@@ -133,7 +138,7 @@ The recent Artemis II Mission had some amazing historical achievements happen. I
 
 1. Clone the repository
    ```sh
-   git clonehttps://github.com/AndraCristiana07/Nasa_Project.git
+   git clone https://github.com/AndraCristiana07/Nasa_Project.git
    ```
 2. Install dependencies
    Backend:
@@ -144,23 +149,32 @@ The recent Artemis II Mission had some amazing historical achievements happen. I
    ```sh
    cd frontend && npm install
    ```
-3. Environment configuration
+3. Environment configuration:
    Create .env files for both backend and frontend
+
    Backend:
+
    ```sh
    NASA_API_KEY=your_nasa_key_here
    PORT=your_port
    ```
+
    Frontend:
+
    ```sh
    VITE_BACKEND_URL=your_api_url_here
    ```
+
 4. Run the app
+
    Backend:
+
    ```sh
    cd backend && node index.js
    ```
+
    Frontend:
+
    ```sh
    cd frontend && npm run dev
    ```
